@@ -11,6 +11,7 @@ print(transcription.text)
 """
 
 import whisper
+import requests
 
 file_path = "test_swiss_german.mp3"
 
@@ -37,4 +38,8 @@ result = model.transcribe(audio, language=det_lang)
 print(result["text"])
 print(det_lang)
 
-prompt = result["text"]
+response = requests.post(
+    "http://localhost:8000/chat",
+    json={"content": result["text"]}
+)
+print(response.text)
