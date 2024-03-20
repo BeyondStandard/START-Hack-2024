@@ -1,4 +1,4 @@
-'''
+"""
 from openai import OpenAI
 client = OpenAI(api_key = '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')
 
@@ -8,11 +8,11 @@ transcription = client.audio.transcriptions.create(
   file=audio_file
 )
 print(transcription.text)
-'''
+"""
 
 import whisper
 
-file_path = 'test_swiss_german.mp3'
+file_path = "test_swiss_german.mp3"
 
 audio = whisper.load_audio(file_path)
 model = whisper.load_model("base")
@@ -28,14 +28,13 @@ _, probs = model.detect_language(mel)
 det_lang = max(probs, key=probs.get)
 
 # decode the audio
-options = whisper.DecodingOptions(language = det_lang)
+options = whisper.DecodingOptions(language=det_lang)
 
-#result = whisper.decode(model, mel, options)
+# result = whisper.decode(model, mel, options)
 result = model.transcribe(audio, language=det_lang)
 
 # print the recognized text and language
 print(result["text"])
 print(det_lang)
 
-prompt = result['text']
-
+prompt = result["text"]

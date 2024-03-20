@@ -2,7 +2,7 @@
 Built for Canton Of St. Gallen challenge, START Hack 2024.
 
 ### Built With
-The backend is written in Python **3.12.0** and utilizes the `FastAPI` framework along with `pydantic` data
+The backend is written in Python **3.10.0** and utilizes the `FastAPI` framework along with `pydantic` data
 models. `Uvicorn` serves as
 the ASGI server to run the application.
 
