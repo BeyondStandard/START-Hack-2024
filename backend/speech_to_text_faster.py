@@ -1,4 +1,5 @@
 import asyncio
+import aiohttp
 import httpx
 import base64
 import datetime
@@ -13,6 +14,11 @@ import whisper
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
+
+text_to_speech_start_time = None
+gpt_start_time = None
+
+
 load_dotenv()
 
 # Define API keys and voice ID
@@ -23,8 +29,10 @@ VOICE_ID = "iP95p4xoKVk53GoZ742B"
 # Set OpenAI API key
 aclient = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
+
 def do_sentiment_analysis(text):
-    subprocess.Popen(["python", os.path.join("backend","sentiment-analysis-request.py"), text])
+    subprocess.Popen(["python", os.path.join("backend", "sentiment-analysis-request.py"), text])
+
 
 async def main():
     # Load and process audio file with Whisper (synchronous part)
@@ -43,8 +51,11 @@ async def main():
 
     speech_to_text_duration = datetime.now() - start
 
-    do_sentiment_analysis(result["text"])
+    # do_sentiment_analysis(result["text"])
     print(f"Speech to text duration: {speech_to_text_duration}")
+
+    global gpt_start_time
+    gpt_start_time = datetime.now()
 
     # Asynchronous chat completion and text-to-speech conversion
     await chat_completion(result["text"])
@@ -77,6 +88,7 @@ async def text_chunker(chunks):
 
 async def stream(audio_stream):
     """Stream audio data using mpv player."""
+    global text_to_speech_start_time
     if not is_installed("mpv"):
         raise ValueError(
             "mpv not found, necessary to stream audio. "
@@ -91,8 +103,14 @@ async def stream(audio_stream):
     )
 
     print("Started streaming audio")
+    first_chunk = True
     async for chunk in audio_stream:
         if chunk:
+            if first_chunk:
+                # Messung der Zeit bis zum Beginn der Sprachausgabe
+                speech_start_duration = datetime.now() - text_to_speech_start_time
+                print(f"Time until speech starts: {speech_start_duration}")
+                first_chunk = False
             mpv_process.stdin.write(chunk)
             mpv_process.stdin.flush()
 
@@ -104,6 +122,8 @@ async def stream(audio_stream):
 async def text_to_speech_input_streaming(voice_id, text_iterator):
     """Send text to ElevenLabs API and stream the returned audio."""
     uri = f"wss://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream-input?model_id=eleven_multilingual_v1"
+    global text_to_speech_start_time
+    text_to_speech_start_time = datetime.now()
 
     async with websockets.connect(uri) as websocket:
         await websocket.send(
@@ -143,48 +163,38 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
 
 
 async def chat_completion(query):
-    """Send query to your server and process the streamed response with timing."""
-    url = "http://localhost:8000/chat"  # Adjust this to your server's actual URL
-    json_body = {"content": query}
+    """Retrieve text from the server and pass it to the text-to-speech function."""
+    url = 'http://localhost:8000/chat/'  # Replace with your actual server URL if different
 
-    # Start timing here
+    # Mark the start time before sending the request
     request_start_time = datetime.now()
-    print(f"Request sent at: {request_start_time}")
 
-    async with httpx.AsyncClient() as client:
-        async with client.stream("POST", url, json=json_body) as response:
-            first_sentence_time = None
-            sentence_buffer = ""
-            first_sentence_printed = False
+    # Use aiohttp to send the query to the server
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json={"query": query}) as response:
+            # Ensure the request was successful
+            response.raise_for_status()
 
-            async def text_iterator():
-                nonlocal first_sentence_time, sentence_buffer, first_sentence_printed
-                async for line in response.aiter_lines():
-                    if line:
-                        sentence = line.strip()
-                        sentence_buffer += sentence
+            # Parse the JSON response containing the text responses
+            data = await response.json()
 
-                        # Check if the buffer contains a sentence-ending punctuation
-                        if '.' in sentence_buffer or '?' in sentence_buffer or '!' in sentence_buffer:
-                            if not first_sentence_time:
-                                first_sentence_time = datetime.now()  # Mark the time when the first complete sentence is received
-                                print(f"Time to first complete sentence: {first_sentence_time - request_start_time}")
+    # Extract the text responses from the server's response
+    text_responses = data['response']  # Adjust if the key is different
 
-                            if not first_sentence_printed:
-                                # Extract the first complete sentence from the buffer
-                                end_index = max(sentence_buffer.rfind('.'), sentence_buffer.rfind('?'), sentence_buffer.rfind('!')) + 1
-                                first_sentence = sentence_buffer[:end_index]
-                                # Print the first complete sentence
-                                print(f"First complete sentence: {first_sentence}")
-                                first_sentence_printed = True  # Set the flag to true after printing
+    # Print the time it takes until the first sentence is received
+    first_response_duration = datetime.now() - request_start_time
+    print(f"Time until first sentence is received: {first_response_duration}")
 
-                            # Clear the buffer after the first complete sentence has been handled
-                            sentence_buffer = sentence_buffer[end_index:]
+    # Define the text_iterator as an asynchronous generator
+    async def text_iterator():
+        for content in text_responses:
+            # Print each sentence as it is received
+            print(content)
+            yield content
 
-                        yield sentence  # Pass each received sentence to the text-to-speech input streaming function
+    # Pass the text responses to the text-to-speech function
+    await text_to_speech_input_streaming(VOICE_ID, text_iterator())
 
-            # Pass the iterator to the text-to-speech input streaming function
-            await text_to_speech_input_streaming(VOICE_ID, text_iterator())
 
 
 # Main execution
