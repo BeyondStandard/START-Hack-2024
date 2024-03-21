@@ -11,7 +11,7 @@ CHUNK_SIZE = 1024
 MIN_VOLUME = 2600
 # if the recording thread can't consume fast enough, the listener will start discarding
 BUF_MAX_SIZE = CHUNK_SIZE * 10
-#wf = 'recorded.mp3'
+wf = wf = wave.open('recorded.mp3', 'rb')
 
 def main():
     stopped = threading.Event()
@@ -55,8 +55,8 @@ def record(stopped, q):
         if vol >= MIN_VOLUME:
             # TODO: write to file
             print("O")
-            #data = wf.readframes(chunk)
-            #print(data)
+            data = wf.readframes(chunk)
+            print(data)
             pause_timer=1
         else:
             print("-")
@@ -64,25 +64,7 @@ def record(stopped, q):
             if pause_timer == 50:
                 print("break now")
                 #os.system('python runner.py')
-                break
-
-#def listen(stopped, q):
-#    stream = pyaudio.PyAudio().open(
-#        format=pyaudio.paInt16,
-#        channels=2,
-#        rate=44100,
-#        input=True,
-#        frames_per_buffer=1024,
-#    )
-
-#    while True:
-        #if stopped.wait(timeout=0):
-        #    break
-#        try:
-#            q.put(array('h', stream.read(CHUNK_SIZE)))
-#        except Full:
-#            break  # discard
-
+                os._exit(0)
 
 if __name__ == '__main__':
     main()
