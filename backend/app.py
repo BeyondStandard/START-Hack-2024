@@ -3,9 +3,10 @@ from langchain_community.vectorstores import Chroma
 from langchain.prompts.prompt import PromptTemplate
 from langchain_openai import OpenAI, OpenAIEmbeddings
 from langchain.chains import RetrievalQA
+from openai import AsyncOpenAI
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi.responses import StreamingResponse, JSONResponse
 
 import logging
 import base64
@@ -16,6 +17,12 @@ import json
 import time
 import sys
 import os
+import asyncio
+
+from pydantic import BaseModel
+import traceback
+
+
 
 # noinspection PyPackages
 from . import prompt_constants, datamodel
@@ -44,17 +51,24 @@ logger.addHandler(file_handler)
 app = FastAPI()
 websocket_clients = set()
 
+#aclient = AsyncOpenAI(api_key=os.environ['OPENAI_API_KEY'])
+VOICE_ID = "iP95p4xoKVk53GoZ742B"
 
-@app.post('/chat')
-def main(message: datamodel.ChatMessage):
-    async def stream():
+
+class ChatQuery(BaseModel):
+    query: str
+
+
+@app.post("/chat/")
+async def chat_endpoint(chat_query: ChatQuery):
+    try:
+        # Initialize your embedding and QA components
         prompt = PromptTemplate(
             template=prompt_constants.PROMPT_TEMPLATE_DE,
             input_variables=['context', 'question'],
         )
         vectordb = Chroma(
-            embedding_function=OpenAIEmbeddings(
-                model=os.environ['embeddingModel']),
+            embedding_function=OpenAIEmbeddings(model=os.environ['embeddingModel']),
             persist_directory='./vectordb',
         )
         qa_chain = RetrievalQA.from_chain_type(
@@ -67,11 +81,44 @@ def main(message: datamodel.ChatMessage):
             retriever=vectordb.as_retriever(search_kwargs={'k': 10}),
             chain_type_kwargs={'prompt': prompt},
         )
-        response_stream = qa_chain.invoke({'query': message.content})
-        yield response_stream['result'] + '\n'
 
-    return StreamingResponse(stream())
+        # Invoke the QA chain with the query
+        response_stream = await asyncio.to_thread(qa_chain.invoke, {'query': chat_query.query})
 
+        # Return the result as a JSON response
+        return JSONResponse(content={"response": response_stream['result']})
+    except Exception as e:
+        detailed_error = traceback.format_exc()
+        logger.error(detailed_error)  # Log the full traceback
+        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+
+
+"""
+async def chat_completion(query):
+    response = await aclient.chat.completions.create(
+        model="gpt-3.5-turbo-0125",
+        messages=[{"role": "user", "content": query}],
+        temperature=1,
+        stream=True,
+    )
+
+    text_responses = []
+
+    async for chunk in response:
+        delta = chunk.choices[0].delta
+        text_responses.append(delta.content)
+
+    return text_responses
+
+
+@app.post("/basicchat/")
+async def chat_endpoint(chat_query: ChatQuery):
+    try:
+        responses = await chat_completion(chat_query.query)
+        return {"responses": responses}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+"""
 
 @app.post("/test-stream")
 def test_stream(message: datamodel.ChatMessage):
