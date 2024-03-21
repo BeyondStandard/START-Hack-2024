@@ -43,6 +43,9 @@ async def main():
     await chat_completion(result["text"])
 
 
+def do_sentiment_analysis(text):
+    subprocess.Popen(["python", "sentiment-analysis-request.py", text])
+
 def is_installed(lib_name):
     return shutil.which(lib_name) is not None
 
@@ -129,7 +132,8 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
             await websocket.send(
                 json.dumps({"text": text, "try_trigger_generation": True})
             )
-
+        do_sentiment_analysis(text)
+        
         await websocket.send(json.dumps({"text": ""}))
 
         await listen_task
