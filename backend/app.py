@@ -142,19 +142,17 @@ async def websocket_endpoint(websocket: WebSocket):
 async def main(message: datamodel.ChatMessage):
     openai.api_key = os.environ["OPENAI_API_KEY"]
     message.content = (
-        f"Classify the sentiment into positive, negative or neutral and identify the most fitting emotion:\n{message.content}"
+        f"Classify the sentiment into positive, negative or neutral and identify the most fitting emotion. Return the result in a JSON format with 'emotion' and 'sentiment' as keys:\n{message.content}."
     )
     response = openai.chat.completions.create(
         model=os.environ["OPENAI_MODEL_NAME"],
         messages=[message.model_dump()],
     )
 
-    prediction = {
-        "value": response.choices[0].message.content,
-    }
+    prediction = [response.choices[0].message.content.lower()]
     print(f"sentiment prediction: {prediction}", file=sys.stderr)
     for client in websocket_clients:
-        await client.send_text(json.dumps(prediction))
+        await client.send_text(prediction)
         break  # TODO: Prevent sending it twice to the frontend
 
     return prediction
