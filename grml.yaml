@@ -26,4 +26,16 @@ commands:
     setup:
         help: setup the project
         exec: |
-            :
+            python3 -m venv .venv
+            source .venv/bin/activate
+            pip install poetry
+            poetry install --no-root
+
+    launch:
+        help: launcher commands
+        commands:
+            backend:
+                help: launch the backend
+                exec: |
+                    source .venv/bin/activate
+                    uvicorn backend.app:app --reload --port 8000
