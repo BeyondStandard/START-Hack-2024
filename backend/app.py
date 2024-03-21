@@ -1,43 +1,33 @@
-import datetime
-import os
-import sys
-import time
-
-import openai
-from datamodel import ChatMessage
-from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import StreamingResponse
-# from openai import OpenAI
-
-from datamodel import ChatMessage
-
-
-from langchain.prompts.prompt import PromptTemplate
-from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_community.vectorstores import Chroma
+from langchain.prompts.prompt import PromptTemplate
+from langchain_openai import OpenAIEmbeddings, OpenAI
 from langchain.chains import RetrievalQA
-from langchain_openai import OpenAI
 
-load_dotenv()
+from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+import dotenv
+import openai
+import json
+import time
+import sys
+import os
+
+from . import prompt_constants
+from . import datamodel
+
+
+dotenv.load_dotenv()
 app = FastAPI()
 websocket_clients = set()
 
-PROMPT_TEMPLATE_DE = """Bitte geben Sie eine prägnante und sachliche Antwort auf die Frage, basierend auf dem gegebenen Kontext. Ihre Antwort sollte klar sein und komplexe Formatierungen vermeiden, sodass sie für Text-zu-Sprache-Lesegeräte geeignet ist. Schließen Sie gesprächsähnliche Elemente wie "nun," "sehen Sie," oder ähnliche Phrasen ein, um die Antwort natürlicher klingen zu lassen. Falls Sie nicht genügend Informationen haben, um genau zu antworten, stellen Sie das bitte klar und schlagen Sie vor, wen ich für eine informiertere Antwort kontaktieren könnte, und erklären Sie, warum diese Person besser geeignet wäre, zu antworten. Konzentrieren Sie sich darauf, die sachliche Wahrheit basierend auf den folgenden Kontextstücken zu liefern:`
-
-{context}
-
-Question: {question}
-Answer:"""
-
-
 
 @app.post("/chat")
-def main(message: ChatMessage):
+def main(message: datamodel.ChatMessage):
     def stream():
         prompt = PromptTemplate(
-            template=PROMPT_TEMPLATE_DE,
+            template=prompt_constants.PROMPT_TEMPLATE_DE,
             input_variables=["context", "question"]
         )
         vectordb = Chroma(
@@ -85,7 +75,7 @@ def main(message: ChatMessage):
 
 
 @app.post("/test-stream")
-def test_stream(message: ChatMessage):
+def test_stream(message: datamodel.ChatMessage):
     def generate_numbers():
         for i in range(1, 11):
             yield f"{i}\n"
@@ -106,7 +96,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @app.post("/sentiment-analysis")
-async def main(message: ChatMessage):
+async def main(message: datamodel.ChatMessage):
     openai.api_key = os.environ["OPENAI_API_KEY"]
     message.content = (
         f"Classify the sentiment into positive, negative or neutral:\n{message.content}"

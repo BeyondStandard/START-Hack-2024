@@ -34,7 +34,7 @@ poetry install --no-root
 #### 3. Run the app
 
 ```shell
-uvicorn app:app --reload --port 8000
+uvicorn backend.app:app --reload --port 8000
 ```
 
 #### 4. Send requests
