@@ -30,6 +30,12 @@ commands:
             source .venv/bin/activate
             pip install poetry
             poetry install --no-root
+            
+            wget -q --show-progress -P data https://djstarthackathon.blob.core.windows.net/data/data.zip
+            unzip data/data.zip -d data
+            rm data/data.zip
+            
+            sh api.sh
 
     launch:
         help: launcher commands
@@ -39,3 +45,12 @@ commands:
                 exec: |
                     source .venv/bin/activate
                     uvicorn backend.app:app --reload --port 8000
+
+    tokenize:
+        help: tokenize the data
+        commands:
+            pickle:
+                help: pickle the html data
+                exec: |
+                    source .venv/bin/activate
+                    python3 tokenizer/pickle_data.py

@@ -1,11 +1,5 @@
 from langchain_community.document_loaders import BSHTMLLoader
-from langchain_community.vectorstores import Chroma
-from langchain_text_splitters import CharacterTextSplitter
-from langchain.prompts.prompt import PromptTemplate
 from langchain_core.documents import Document
-from langchain.globals import set_debug
-from langchain_openai import OpenAIEmbeddings, OpenAI
-from langchain.chains import RetrievalQA
 
 import functools
 import pandas
@@ -16,6 +10,7 @@ import bs4
 import os
 
 
+# UTF-8 encoding has been messed up by the original parsing
 REPL: typing.Final[dict[str, str]] = {
     '\xa0': ' ',
     '&auml;': 'ä',
@@ -76,8 +71,8 @@ class TqdmFileWrapper:
 
 
 class Data:
-    XLSX_PATH: typing.Final[str] = 'st-gallen-data-new.xlsx'
-    PICKLE_PATH: typing.Final[str] = 'data.pickle'
+    XLSX_PATH: typing.Final[str] = 'data/st-gallen-data-new.xlsx'
+    PICKLE_PATH: typing.Final[str] = 'data/data.pickle'
 
     def __init__(self, path):
         self.raw_data = pandas.read_excel(path, sheet_name=None)
@@ -162,7 +157,7 @@ class Data:
             self.data = pickle.load(wrapped_file)
 
     def export_data(self):
-        with open('data.pickle', 'wb') as f:
+        with open(Data.PICKLE_PATH, 'wb') as f:
             pickle.dump(self.data, f)
 
     def yield_datapoints(self, data=None):
@@ -175,27 +170,3 @@ class Data:
 
             else:
                 yield from self.yield_datapoints(value)
-
-
-if __name__ == '__main__':
-    data = Data(Data.XLSX_PATH)
-    data.load_from_pickle()
-
-    documents = []
-    text_splitter = CharacterTextSplitter(
-        separator='.', chunk_size=1000, chunk_overlap=200)
-
-    for datapoint in data.yield_datapoints():
-        documents.extend(text_splitter.split_documents(datapoint.load()))
-
-    vectordb = Chroma.from_documents(
-        documents,
-        persist_directory='./vectordb',
-        embedding=OpenAIEmbeddings(model='text-embedding-3-small'),
-    )
-    vectordb.persist()
-
-    # chain = load_qa_chain(llm=OpenAI(), verbose=True)
-    # query = 'Was muss ich beachten wenn ich Baugesuch einreichen will?'
-    # response = chain.invoke({"input_documents": document.load(), "question": query})
-    # print(response["output_text"])
