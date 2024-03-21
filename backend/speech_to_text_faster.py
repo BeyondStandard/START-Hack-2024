@@ -164,25 +164,37 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
 
 async def chat_completion(query):
     """Retrieve text from the server and pass it to the text-to-speech function."""
-    # Replace 'http://localhost:8000/chat/' with your actual server URL if different
-    url = 'http://localhost:8000/chat/'
+    url = 'http://localhost:8000/chat/'  # Replace with your actual server URL if different
+
+    # Mark the start time before sending the request
+    request_start_time = datetime.now()
+
+    # Use aiohttp to send the query to the server
     async with aiohttp.ClientSession() as session:
-        # Send the query to the server
         async with session.post(url, json={"query": query}) as response:
             # Ensure the request was successful
             response.raise_for_status()
+
             # Parse the JSON response containing the text responses
             data = await response.json()
 
     # Extract the text responses from the server's response
-    text_responses = data['response']
+    text_responses = data['response']  # Adjust if the key is different
 
+    # Print the time it takes until the first sentence is received
+    first_response_duration = datetime.now() - request_start_time
+    print(f"Time until first sentence is received: {first_response_duration}")
+
+    # Define the text_iterator as an asynchronous generator
     async def text_iterator():
         for content in text_responses:
+            # Print each sentence as it is received
+            print(content)
             yield content
 
     # Pass the text responses to the text-to-speech function
     await text_to_speech_input_streaming(VOICE_ID, text_iterator())
+
 
 
 # Main execution
