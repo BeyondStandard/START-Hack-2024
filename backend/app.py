@@ -68,7 +68,7 @@ def main(message: datamodel.ChatMessage):
             chain_type_kwargs={'prompt': prompt},
         )
         response_stream = qa_chain.invoke({'query': message.content})
-        yield response_stream['result']
+        yield response_stream['result'] + '\n'
 
     return StreamingResponse(stream())
 
