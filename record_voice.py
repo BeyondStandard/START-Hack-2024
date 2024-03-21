@@ -1,6 +1,5 @@
-import threading
+import asyncio
 from array import array
-from queue import Queue, Full
 import sounddevice as sd
 from scipy.io.wavfile import write
 import pyaudio
@@ -9,62 +8,43 @@ import os
 
 CHUNK_SIZE = 1024
 MIN_VOLUME = 2600
-# if the recording thread can't consume fast enough, the listener will start discarding
 BUF_MAX_SIZE = CHUNK_SIZE * 10
-wf = wf = wave.open('recorded.mp3', 'rb')
+q = asyncio.Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK_SIZE)))
+stop_event = asyncio.Event()
 
-def main():
-    stopped = threading.Event()
-    q = Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK_SIZE)))
+async def main():
+    listener_task = asyncio.create_task(listen(q))
+    recorder_task = asyncio.create_task(record(q))
+    await asyncio.gather(listener_task, recorder_task)
 
-    #listen_t = threading.Thread(target=listen, args=(stopped, q))
-    #listen_t.start()
-    record_t = threading.Thread(target=record, args=(stopped, q))
-    record_t.start()
-
-    try:
-        while True:
-            #listen_t.join(0.1)
-            record_t.join(0.1)
-    except KeyboardInterrupt:
-        stopped.set()
-
-    #listen_t.join()
-    record_t.join()
-
-def record(stopped, q):
+async def record(q):
     pause_timer = 1
+    while not stop_event.is_set():
+        chunk = await q.get()
+        vol = max(chunk)
+        if vol >= MIN_VOLUME:
+            pause_timer = 1
+        else:
+            pause_timer = pause_timer + 1
+            if pause_timer == 50:
+                print("break now")
+                #os.system('python runner.py')
+                stop_event.set()
+
+async def listen(q):
     stream = pyaudio.PyAudio().open(
         format=pyaudio.paInt16,
-        channels=2,
+        channels=1,
         rate=44100,
         input=True,
         frames_per_buffer=1024,
     )
-    while True:
-        if stopped.wait(timeout=0):
-            break
-        try:
-            q.put(array('h', stream.read(CHUNK_SIZE)))
-        except Full:
-            break
 
-        chunk = q.get()
-        vol = max(chunk)
-        #print(vol)
-        if vol >= MIN_VOLUME:
-            # TODO: write to file
-            print("O")
-            data = wf.readframes(chunk)
-            print(data)
-            pause_timer=1
-        else:
-            print("-")
-            pause_timer = pause_timer+1
-            if pause_timer == 50:
-                print("break now")
-                #os.system('python runner.py')
-                os._exit(0)
+    while not stop_event.is_set():
+        try:
+            await q.put(array('h', stream.read(CHUNK_SIZE)))
+        except asyncio.queues.QueueFull:
+            return  # discard
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
