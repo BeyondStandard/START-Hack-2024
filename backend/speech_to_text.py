@@ -11,11 +11,10 @@ from elevenlabs.client import ElevenLabs
 def do_sentiment_analysis(text):
     subprocess.Popen(["python", "sentiment-analysis-request.py", text])
 
-
 def do_speech_to_text():
     # To add twilio/phone app thingy
     # file_path = "test_swiss_german.mp3"
-    file_path = "gras.mp3"
+    file_path = "recorded.mp3"
 
     start = datetime.now()
 
