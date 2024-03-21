@@ -1,7 +1,8 @@
 import pyaudio
 import struct
 import wave
-     
+import time
+
 def record(outputFile):
 #defining audio variables
     chunk = 1024
