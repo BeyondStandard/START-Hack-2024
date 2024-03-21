@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import './App.css';
+import AudioRecorder from "./AudioRecorder";
 
 function App() {
   const [predictions, setPredictions]: Object<string, number> = useState(
@@ -57,6 +58,7 @@ function App() {
         <div style={{width: `${(predictions.neutral / total) * 100}%`, backgroundColor: '#dedede'}}></div>
         <div style={{width: `${(predictions.negative / total) * 100}%`, backgroundColor: '#ed8e8e'}}></div>
       </div>
+      <AudioRecorder/>
     </div>
   )
 }
