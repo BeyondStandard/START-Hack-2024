@@ -36,6 +36,12 @@ commands:
             rm data/data.zip
             
             sh api.sh
+        
+        commands:
+            windows:
+                help: setup the project for windows
+                exec: |
+                    conda env create -f environment.yml
 
     launch:
         help: launcher commands
@@ -45,6 +51,12 @@ commands:
                 exec: |
                     source .venv/bin/activate
                     uvicorn backend.app:app --reload --port 8000
+                commands:
+                    windows:
+                        help: setup for windows
+                        exec: |
+                            conda activate st_gallen_env
+                            uvicorn backend.app:app --reload --port 8000
 
     tokenize:
         help: tokenize the data
