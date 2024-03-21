@@ -4,8 +4,8 @@ from langchain.prompts.prompt import PromptTemplate
 from langchain_openai import OpenAI, OpenAIEmbeddings
 from langchain.chains import RetrievalQA
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi.responses import StreamingResponse, Response
 
 import logging
 import base64
@@ -19,6 +19,7 @@ import os
 
 # noinspection PyPackages
 from . import prompt_constants, datamodel
+from .speech_to_text import do_speech_to_text
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -116,41 +117,46 @@ async def main(message: datamodel.ChatMessage):
     return prediction
 
 
+@app.post("/voice")
+async def voice(request: Request):
+    """Accept phone call and redirect to websocket endpoint (doesn't work) :(
+    https://www.twilio.com/docs/voice/twiml/stream
+    https://www.twilio.com/docs/voice/tutorials/consume-real-time-media-stream-using-websockets-python-and-flask
+    Alternative: https://help.twilio.com/articles/230878368-How-to-use-templates-with-TwiML-Bins ?
+    """
+    logger.info(f"Received an incoming call")
+
+    twiml = """
+    <Response>
+        <Say>Hello, we will start processing your call now.</Say>
+        <Start>
+            <Stream url="wss://sweeping-maggot-informed.ngrok-free.app/media"/>
+        </Start>
+    </Response>
+    """
+
+    resp = Response(content=twiml, media_type="text/xml")
+
+    return resp
+
+
 @app.websocket("/media")
 async def websocket_endpoint(websocket: WebSocket):
-    logger.info("Connection accepted")
-    # A lot of messages will be sent rapidly. We'll stop showing after the first one.
-    has_seen_media = False
-    message_count = 0
     await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        message = json.loads(data)
-        if message is None:
-            logger.info("No message received...")
-            continue
 
-        # Using the event type you can determine what type of message you are receiving
-        if message['event'] == 'connected':
-            logger.info("Connected Message received: {}".format(data))
-        if message['event'] == 'start':
-            logger.info("Start Message received: {}".format(data))
-        if message['event'] == 'media':
-            if not has_seen_media:
-                logger.info("Media message: {}".format(data))
-                payload = message['media']['payload']
-                logger.info("Payload is: {}".format(payload))
-                chunk = base64.b64decode(payload)
-                logger.info("That's {} bytes".format(len(chunk)))
-                logger.info(
-                    "Additional media messages from WebSocket are being suppressed...."
-                )
-                has_seen_media = True
-        if message["event"] == "closed":
-            logger.info("Closed Message received: {}".format(data))
-            break
-        message_count += 1
+    async for message in websocket.iter_text():
+        data = json.loads(message)
 
-    logger.info(
-        "Connection closed. Received a total of {} messages".format(message_count)
-    )
+        if data['event'] == "media":
+            payload = data["media"]["payload"]
+            audio = base64.b64decode(payload)
+            response = do_speech_to_text(audio)
+
+            # If your STT service response is a sequence of words,
+            # you may want to join them into a complete sentence.
+            text = ' '.join(response)
+
+            # Now you have the transcribed text!
+            print(text)
+
+    print("Connection closed.")

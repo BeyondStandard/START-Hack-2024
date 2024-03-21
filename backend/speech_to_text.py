@@ -13,14 +13,14 @@ from elevenlabs.client import ElevenLabs
 def do_sentiment_analysis(text):
     subprocess.Popen(["python", os.path.join("backend","sentiment-analysis-request.py"), text])
 
-def do_speech_to_text():
+def do_speech_to_text(audio):
     # To add twilio/phone app thingy
     # file_path = "test_swiss_german.mp3"
-    file_path = "gras.mp3"
+    # file_path = "gras.mp3"
 
     start = datetime.now()
 
-    audio = whisper.load_audio(file_path)
+    # audio = whisper.load_audio(file_path)
     model = whisper.load_model("base")
 
     # load audio and pad/trim it to fit 30 seconds
@@ -95,4 +95,4 @@ def do_speech_to_text():
     # print("Text to speech: "+str(text_to_speech))
 
 
-do_speech_to_text()
+# do_speech_to_text()
