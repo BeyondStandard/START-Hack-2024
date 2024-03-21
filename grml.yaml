@@ -23,6 +23,54 @@ options:
         - text-embedding-3-small
         - text-embedding-ada-002
         - text-embedding-3-large
+    
+    voice:
+        - Matilda
+        - Rachel
+        - Drew
+        - Clyde
+        - Paul
+        - Domi
+        - Dave
+        - Fin
+        - Sarah
+        - Antoni
+        - Thomas
+        - Charlie
+        - George
+        - Emily
+        - Elli
+        - Callum
+        - Patrick
+        - Harry
+        - Liam
+        - Dorothy
+        - Josh
+        - Arnold
+        - Charlotte
+        - Alice
+        - Matthew
+        - James
+        - Joseph
+        - Jeremy
+        - Michael
+        - Ethan
+        - Chris
+        - Gigi
+        - Freya
+        - Brian
+        - Grace
+        - Daniel
+        - Lily
+        - Serena
+        - Adam
+        - Nicole
+        - Bill
+        - Jessie
+        - Sam
+        - Glinda
+        - Giovanni
+        - Mimi
 
 import:
     - scripts/grml.sh
