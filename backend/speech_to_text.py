@@ -40,29 +40,53 @@ speech_to_text = datetime.now()-start
 time_stamp_1 = datetime.now()
 print("Speech to text: "+str(speech_to_text))
 
-response = requests.post(
-    "http://localhost:8000/chat",
-    json={"content": result["text"]}
-)
 
-#Reponse Text output
-print("This is the GPT response:", response.text)
-time_stamp_2 = datetime.now()
-gpt_response = datetime.now() - time_stamp_1
-print("GPT Response: "+str(gpt_response))
 
 client = ElevenLabs(
   api_key="41f1d61b1ce48269216086555aa78d33",
 )
 
+print_response_time = True
 
-audio = client.generate(
-    text=response.text,
-    voice="Chris",
-    model='eleven_multilingual_v1'
-)
+response = requests.post("http://localhost:8000/chat", json={"content": result["text"]}, stream=True)
+
+# Time when the request was sent (for measuring GPT response time)
+time_stamp_request_sent = datetime.now()
+
+for line in response.iter_lines():
+    if line:
+        # Decode the line to get the sentence
+        sentence = line.decode('utf-8')
+        print(sentence)
+
+        # If this is the first line, print the time taken by GPT to respond
+        if print_response_time:
+            time_stamp_first_response = datetime.now()
+            gpt_response_time = time_stamp_first_response - time_stamp_request_sent
+            print("Time for first GPT response: " + str(gpt_response_time))
+            print_response_time = False
+
+        # Time when text-to-speech starts (for measuring text-to-speech time)
+        time_stamp_text_to_speech_start = datetime.now()
+
+        # Perform text-to-speech on the sentence
+        audio = client.generate(
+            text=sentence,
+            voice="Chris",
+            model='eleven_multilingual_v1'
+        )
+
+        # Calculate the time taken for text-to-speech conversion
+        text_to_speech_time = datetime.now() - time_stamp_text_to_speech_start
+        print("Text-to-Speech time: " + str(text_to_speech_time))
+
+        # Play the audio or process it as needed
+        print("Playing audio")
+        play(audio)
+        print("Audio played")
+
+
+
 
 #print("Time elapsed for generating:", end - start)
-text_to_speech = datetime.now() - time_stamp_2
-print("Text to speech: "+str(text_to_speech))
-play(audio)
+#print("Text to speech: "+str(text_to_speech))

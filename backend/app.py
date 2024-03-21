@@ -1,4 +1,5 @@
 import os
+import time
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -21,8 +22,29 @@ def main(message: ChatMessage):
             stream=True,
         )
 
+        buffered_text = ""
         for chunk in response_stream:
-            if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content
+            content = chunk.choices[0].delta.content
+            if content:
+                buffered_text += content
+                if '.' in buffered_text or '?' in buffered_text or '!' in buffered_text:
+                    last_period = max(buffered_text.rfind('.'), buffered_text.rfind('?'), buffered_text.rfind('!'))
+                    sentence = buffered_text[:last_period + 1]
+                    buffered_text = buffered_text[last_period + 1:]
+                    yield sentence + "\n"
+
+        # Yield any remaining text after the loop finishes
+        if buffered_text:
+            yield buffered_text
 
     return StreamingResponse(stream())
+
+
+@app.post("/test-stream")
+def test_stream(message: ChatMessage):
+    def generate_numbers():
+        for i in range(1, 11):
+            yield f"{i}\n"
+            time.sleep(1)  # Simulate delay
+
+    return StreamingResponse(generate_numbers(), media_type="text/plain")
