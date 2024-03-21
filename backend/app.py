@@ -1,28 +1,48 @@
-import base64
-import json
-import logging
-import os
-import sys
-import time
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_community.vectorstores import Chroma
+from langchain.prompts.prompt import PromptTemplate
+from langchain_openai import OpenAI, OpenAIEmbeddings
+from langchain.chains import RetrievalQA
 
-import dotenv
-import openai
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.chains import RetrievalQA
-from langchain.prompts.prompt import PromptTemplate
-from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAI, OpenAIEmbeddings
 
-from . import datamodel, prompt_constants
+import logging
+import base64
+import dotenv
+import openai
+import typing
+import json
+import time
+import sys
+import os
 
+# noinspection PyPackages
+from . import prompt_constants, datamodel
+
+# Load environment variables
 dotenv.load_dotenv()
+
+
+# Logger constants
+LOGGER_DATE_FORMAT: typing.Final[str] = '%H:%M:%S'
+LOGGER_FORMAT: typing.Final[str] = \
+    '%(asctime)s | [%(lineno)3s] %(levelname)-9s| %(message)s'
+FILE_LOGGER_FORMATTER = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
+FILE_LOGGER_NAME: typing.Final[str] = 'log_file.log'
+FILE_LOGGER_LEVEL: typing.Final[int] = logging.DEBUG
+
+# Set up file logging
+file_handler = logging.FileHandler(FILE_LOGGER_NAME, mode='w')
+file_handler.setFormatter(FILE_LOGGER_FORMATTER)
+file_handler.setLevel(FILE_LOGGER_LEVEL)
+
+# Set up logging
+logger = logging.getLogger('uvicorn')
+logger.addHandler(file_handler)
+
+# Set up FastAPI
 app = FastAPI()
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-file_handler = logging.FileHandler("log_file.log")
-file_handler.setLevel(logging.DEBUG)
 websocket_clients = set()
 
 
