@@ -1,4 +1,5 @@
 import asyncio
+import httpx
 import base64
 import datetime
 import json
@@ -41,7 +42,7 @@ async def main():
     print(result["text"])
 
     speech_to_text_duration = datetime.now() - start
-    
+
     do_sentiment_analysis(result["text"])
     print(f"Speech to text duration: {speech_to_text_duration}")
 
@@ -135,27 +136,55 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
             await websocket.send(
                 json.dumps({"text": text, "try_trigger_generation": True})
             )
-        
+
         await websocket.send(json.dumps({"text": ""}))
 
         await listen_task
 
 
 async def chat_completion(query):
-    """Retrieve text from OpenAI and pass it to the text-to-speech function."""
-    response = await aclient.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
-        messages=[{"role": "user", "content": query}],
-        temperature=1,
-        stream=True,
-    )
+    """Send query to your server and process the streamed response with timing."""
+    url = "http://localhost:8000/chat"  # Adjust this to your server's actual URL
+    json_body = {"content": query}
 
-    async def text_iterator():
-        async for chunk in response:
-            delta = chunk.choices[0].delta
-            yield delta.content
+    # Start timing here
+    request_start_time = datetime.now()
+    print(f"Request sent at: {request_start_time}")
 
-    await text_to_speech_input_streaming(VOICE_ID, text_iterator())
+    async with httpx.AsyncClient() as client:
+        async with client.stream("POST", url, json=json_body) as response:
+            first_sentence_time = None
+            sentence_buffer = ""
+            first_sentence_printed = False
+
+            async def text_iterator():
+                nonlocal first_sentence_time, sentence_buffer, first_sentence_printed
+                async for line in response.aiter_lines():
+                    if line:
+                        sentence = line.strip()
+                        sentence_buffer += sentence
+
+                        # Check if the buffer contains a sentence-ending punctuation
+                        if '.' in sentence_buffer or '?' in sentence_buffer or '!' in sentence_buffer:
+                            if not first_sentence_time:
+                                first_sentence_time = datetime.now()  # Mark the time when the first complete sentence is received
+                                print(f"Time to first complete sentence: {first_sentence_time - request_start_time}")
+
+                            if not first_sentence_printed:
+                                # Extract the first complete sentence from the buffer
+                                end_index = max(sentence_buffer.rfind('.'), sentence_buffer.rfind('?'), sentence_buffer.rfind('!')) + 1
+                                first_sentence = sentence_buffer[:end_index]
+                                # Print the first complete sentence
+                                print(f"First complete sentence: {first_sentence}")
+                                first_sentence_printed = True  # Set the flag to true after printing
+
+                            # Clear the buffer after the first complete sentence has been handled
+                            sentence_buffer = sentence_buffer[end_index:]
+
+                        yield sentence  # Pass each received sentence to the text-to-speech input streaming function
+
+            # Pass the iterator to the text-to-speech input streaming function
+            await text_to_speech_input_streaming(VOICE_ID, text_iterator())
 
 
 # Main execution
