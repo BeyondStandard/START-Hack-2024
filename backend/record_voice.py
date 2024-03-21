@@ -1,7 +1,8 @@
-import pyaudio
 import struct
-import wave
 import time
+import wave
+
+import pyaudio
 
 
 def record(outputFile):
@@ -14,11 +15,9 @@ def record(outputFile):
 
     # Calling pyadio module and starting recording
     p = pyaudio.PyAudio()
-    stream = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    frames_per_buffer=chunk)
+    stream = p.open(
+        format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=chunk
+    )
 
     stream.start_stream()
     print("Starting!")
@@ -29,7 +28,7 @@ def record(outputFile):
     while True:
         # Converting chunk data into integers
         data = stream.read(chunk)
-        data_int = struct.unpack(str(2 * chunk) + 'B', data)
+        data_int = struct.unpack(str(2 * chunk) + "B", data)
         # Finding average intensity per chunk
         avg_data = sum(data_int) / len(data_int)
         print(str(avg_data))
@@ -45,12 +44,12 @@ def record(outputFile):
     print("Ending recording!")
 
     # Saving file with wave module
-    wf = wave.open(outputFile, 'wb')
+    wf = wave.open(outputFile, "wb")
     wf.setnchannels(CHANNELS)
     wf.setsampwidth(p.get_sample_size(FORMAT))
     wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
+    wf.writeframes(b"".join(frames))
     wf.close()
 
 
-record('recorded.mp3')
+record("recorded.mp3")

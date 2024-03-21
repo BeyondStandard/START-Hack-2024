@@ -4,12 +4,11 @@ import sys
 import time
 
 import openai
+from datamodel import ChatMessage
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from openai import OpenAI
-
-from datamodel import ChatMessage
 
 load_dotenv()
 app = FastAPI()
@@ -38,7 +37,7 @@ def main(message: ChatMessage):
                         buffered_text.rfind("!"),
                     )
                     sentence = buffered_text[: last_period + 1]
-                    buffered_text = buffered_text[last_period + 1:]
+                    buffered_text = buffered_text[last_period + 1 :]
                     yield sentence + "\n"
 
         # Yield any remaining text after the loop finishes
@@ -80,7 +79,9 @@ async def main(message: ChatMessage):
         messages=[message.model_dump()],
     )
 
-    prediction = {"value": response.choices[0].message.content, }
+    prediction = {
+        "value": response.choices[0].message.content,
+    }
     print(prediction, file=sys.stderr)
     for client in websocket_clients:
         await client.send_text(json.dumps(prediction))
