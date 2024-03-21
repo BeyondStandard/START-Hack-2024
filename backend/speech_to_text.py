@@ -10,7 +10,7 @@ from elevenlabs.client import ElevenLabs
 # To add twilio/phone app thingy
 
 file_path = "gras.mp3"
-s
+
 start = datetime.now()
 
 audio = whisper.load_audio(file_path)
