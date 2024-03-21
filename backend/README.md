@@ -1,7 +1,9 @@
 ## GPT3.5 Chatter
+
 Built for Canton Of St. Gallen challenge, START Hack 2024.
 
 ### Built With
+
 The backend is written in Python **3.10.0** and utilizes the `FastAPI` framework along with `pydantic` data
 models. `Uvicorn` serves as
 the ASGI server to run the application.
@@ -42,11 +44,8 @@ Examples:
 ```shell
 # Shell
 curl -X POST -H "Content-Type: application/json" -d '{
-  "cart_value": "790",
-  "delivery_distance": "2635",
-  "number_of_items": "4",
-  "time": "2024-01-18T17:30:00Z"
-}' http://localhost:8000/calculate-delivery-fee
+  "content": "Hi, how are you?",
+}' http://localhost:8000/chat
 ```
 
 ```python
@@ -56,24 +55,12 @@ import requests
 
 request = json.dumps(
     {
-        "cart_value": "790",
-        "delivery_distance": "2635",
-        "number_of_items": "4",
-        "time": "2024-01-18T17:30:00Z",
+        "content": "Hi, how are you?",
     }
 )
 response = requests.post(
-    "http://localhost:8000/calculate-delivery-fee",
+    "http://localhost:8000/chat",
     data=request
 )
 print(json.dumps(response.json(), indent=2))
-```
-
-### Testing
-
-`pytest` is used for tests. The project has a 100% pytest coverage which can be checked by running:
-
-```shell
-pytest --cov=. --cov-report=html
-open htmlcov/index.html
 ```
