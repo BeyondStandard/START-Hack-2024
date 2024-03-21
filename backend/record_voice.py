@@ -1,23 +1,30 @@
 import struct
 import time
 import wave
-
+from queue import Queue, Full
 import pyaudio
 
 
 def record(outputFile):
     # defining audio variables
-    chunk = 1024
+    CHUNK_SIZE = 1024
     FORMAT = pyaudio.paInt16
-    CHANNELS = 1
+    CHANNELS = 2
     RATE = 44100
-    Y = 100
-
+    #Y = 100
+    MIN_VOLUME = 2600
+    BUF_MAX_SIZE = CHUNK_SIZE * 10
     # Calling pyadio module and starting recording
     p = pyaudio.PyAudio()
-    stream = p.open(
-        format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=chunk
+
+    stream = pyaudio.PyAudio().open(
+        format=pyaudio.paInt16,
+        channels=2,
+        rate=44100,
+        input=True,
+        frames_per_buffer=1024,
     )
+    q = Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK_SIZE)))
 
     stream.start_stream()
     print("Starting!")
@@ -25,17 +32,29 @@ def record(outputFile):
     # Recording data until under threshold
     frames = []
 
+    pause_timer = 1
+
     while True:
+        chunk = q.get()
+        vol = max(chunk)
         # Converting chunk data into integers
         data = stream.read(chunk)
-        data_int = struct.unpack(str(2 * chunk) + "B", data)
+        #data_int = struct.unpack(str(2 * chunk) + "B", data)
         # Finding average intensity per chunk
-        avg_data = sum(data_int) / len(data_int)
-        print(str(avg_data))
+        #avg_data = sum(data_int) / len(data_int)
+        vol = max(chunk)
+        #print(str(avg_data))
+        print(vol)
         # Recording chunk data
         frames.append(data)
-        if avg_data < Y:
-            break
+        #if avg_data < Y:
+        if vol >=MIN_VOLUME:
+            pause_timer=pause_timer+1
+            if pause_timer>50:
+                break
+        
+        else:
+            print("Recording...")
 
     # Stopping recording
     stream.stop_stream()
