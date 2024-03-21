@@ -6,7 +6,9 @@ from datetime import datetime
 import subprocess
 
 # To add twilio/phone app thingy
-file_path = "test_swiss_german.mp3"
+#file_path = "test_swiss_german.mp3"
+file_path = "gras.mp3"
+
 start = datetime.now()
 
 audio = whisper.load_audio(file_path)
@@ -44,7 +46,7 @@ response = requests.post(
 )
 
 #Reponse Text output
-#print(response.text)
+print("This is the GPT response:", response.text)
 time_stamp_2 = datetime.now()
 gpt_response = datetime.now() - time_stamp_1
 print("GPT Response: "+str(gpt_response))
