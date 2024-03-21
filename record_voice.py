@@ -10,11 +10,10 @@ MIN_VOLUME = 2600
 BUF_MAX_SIZE = CHUNK_SIZE * 10
 q = asyncio.Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK_SIZE)))
 stop_event = asyncio.Event()
-wf = wave.open("recorded.mp4", "wb")
+wf = wave.open("recorded.mp3", "wb")
 wf.setnchannels(2)
 wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
 wf.setframerate(44100)
-
 
 async def main():
     listener_task = asyncio.create_task(listen(q))
