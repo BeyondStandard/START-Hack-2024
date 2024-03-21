@@ -1,16 +1,9 @@
 import asyncio
+import os
 import wave
 from array import array
-import sounddevice as sd
-from scipy.io.wavfile import write
+
 import pyaudio
-import io
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-subprocess.Popen(["uvicorn", "backend.app:app","--reload","--port","8000"])
-
 
 CHUNK_SIZE = 1024
 MIN_VOLUME = 2600

@@ -23,6 +23,7 @@ import traceback
 
 # noinspection PyPackages
 from . import prompt_constants, datamodel
+from .datamodel import ChatMessage
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -52,12 +53,8 @@ websocket_clients = set()
 VOICE_ID = "iP95p4xoKVk53GoZ742B"
 
 
-class ChatQuery(BaseModel):
-    query: str
-
-
 @app.post("/chat/")
-async def chat_endpoint(chat_query: ChatQuery):
+async def chat_endpoint(chat_query: ChatMessage):
     try:
         # Initialize your embedding and QA components
         prompt = PromptTemplate(
@@ -80,7 +77,7 @@ async def chat_endpoint(chat_query: ChatQuery):
         )
 
         # Invoke the QA chain with the query
-        response_stream = await asyncio.to_thread(qa_chain.invoke, {'query': chat_query.query})
+        response_stream = await asyncio.to_thread(qa_chain.invoke, {'query': chat_query.content})
 
         # Return the result as a JSON response
         return JSONResponse(content={"response": response_stream['result']})
@@ -116,6 +113,7 @@ async def chat_endpoint(chat_query: ChatQuery):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 """
+
 
 @app.post("/test-stream")
 def test_stream(message: datamodel.ChatMessage):
