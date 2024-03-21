@@ -2,7 +2,8 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain_community.vectorstores import Chroma
 from langchain.prompts.prompt import PromptTemplate
 from langchain_openai import OpenAI, OpenAIEmbeddings
-from langchain.chains import RetrievalQA
+from langchain.chains.retrieval_qa.base import RetrievalQA
+from langchain_core.callbacks.base import BaseCallbackHandler
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
@@ -31,7 +32,7 @@ dotenv.load_dotenv()
 # Logger constants
 LOGGER_DATE_FORMAT: typing.Final[str] = '%H:%M:%S'
 LOGGER_FORMAT: typing.Final[str] = \
-    '%(asctime)s | [%(lineno)3s] %(levelname)-9s| %(message)s'
+    '%(asctime)s.%(msecs)03d | [%(lineno)3s] %(levelname)-9s| %(message)s'
 FILE_LOGGER_FORMATTER = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
 FILE_LOGGER_NAME: typing.Final[str] = 'log_file.log'
 FILE_LOGGER_LEVEL: typing.Final[int] = logging.DEBUG
@@ -53,22 +54,41 @@ websocket_clients = set()
 VOICE_ID = "iP95p4xoKVk53GoZ742B"
 
 
-@app.post("/chat/")
-async def chat_endpoint(chat_query: ChatMessage):
-    try:
-        # Initialize your embedding and QA components
+class TokenCallbackHandler(BaseCallbackHandler):
+    def __init__(self):
+        super().__init__()
+        self.tokens = []
+
+    def on_llm_new_token(self, token: str, **kwargs) -> None:
+
+        # Check if the token has sentence ending punctuation
+        if not any(p in token for p in ['.', '!', '?']):
+            self.tokens.append(token)
+            return
+
+        self.tokens.append(token)
+        sentence = "".join(self.tokens)
+        self.tokens = []
+        logger.info(f"SENTENCE: {sentence}")
+
+
+class GPTChatter:
+    def __init__(self):
+        self.callback = TokenCallbackHandler()
+
         prompt = PromptTemplate(
             template=prompt_constants.PROMPT_TEMPLATE_DE,
             input_variables=['context', 'question'],
         )
         vectordb = Chroma(
-            embedding_function=OpenAIEmbeddings(model=os.environ['embeddingModel']),
+            embedding_function=OpenAIEmbeddings(
+                model=os.environ['embeddingModel']),
             persist_directory='data/vectordb',
         )
-        qa_chain = RetrievalQA.from_chain_type(
+        self.qa_chain: RetrievalQA = RetrievalQA.from_chain_type(
             llm=OpenAI(
                 streaming=True,
-                callbacks=[StreamingStdOutCallbackHandler()],
+                callbacks=[self.callback],
                 temperature=0,
                 openai_api_key=os.environ['OPENAI_API_KEY'],
             ),
@@ -76,16 +96,16 @@ async def chat_endpoint(chat_query: ChatMessage):
             chain_type_kwargs={'prompt': prompt},
         )
 
-        # Invoke the QA chain with the query
-        response_stream = await asyncio.to_thread(
-            qa_chain.invoke, {'query': chat_query.content})
+    async def ask(self, message: str) -> dict[str, typing.Any]:
+        return self.qa_chain.invoke({'query': message})
 
-        # Return the result as a JSON response
-        return JSONResponse(content={"response": response_stream['result']})
-    except Exception as e:
-        detailed_error = traceback.format_exc()
-        logger.error(detailed_error)  # Log the full traceback
-        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+
+chatter = GPTChatter()
+
+@app.post('/chat')
+async def main(message: datamodel.ChatMessage):
+    response = await chatter.ask(message.content)
+    return response
 
 
 """

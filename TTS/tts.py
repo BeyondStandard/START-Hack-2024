@@ -54,7 +54,7 @@ async def main():
     gpt_start_time = datetime.datetime.now()
 
     # Asynchronous chat completion and text-to-speech conversion
-    await chat_completion(result["text"])
+    await chat_completion("Warum war John F Kennedy Schwarz?")
 
 
 def is_installed(lib_name):
@@ -165,33 +165,47 @@ async def chat_completion(query):
     # Mark the start time before sending the request
     request_start_time = datetime.datetime.now()
 
-    # Use aiohttp to send the query to the server
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json={'content': query}) as response:
-            # Ensure the request was successful
-            response.raise_for_status()
+    # normal post request to the url:
+    import requests
+    response = requests.post(url, json={'content': query})
 
-            # Parse the JSON response containing the text responses
-            data = await response.json()
+    # async def iterate_streaming_response(response):
+    #     async for item in response:
+    #         # Process each item here
+    #         print(item)
+    #
+    # asyncio.run(iterate_streaming_response(response))
 
-    # Extract the text responses from the server's response
-    text_responses = data['response']  # Adjust if the key is different
 
-    # Print the time it takes until the first sentence is received
-    first_response_duration = datetime.datetime.now() - request_start_time
-    print(f"Time until first sentence is received: {first_response_duration}")
 
-    # Define the text_iterator as an asynchronous generator
-    async def text_iterator():
-        sentences = text_responses.split(".")
-        sentences = [sentence.strip() for sentence in sentences if sentence]
 
-        for sentence in sentences:
-            print(sentence)
-            yield sentence
+    # # Use aiohttp to send the query to the server
+    # async with aiohttp.ClientSession() as session:
+    #     async with session.post(url, json={'content': query}) as response:
+    #         # Ensure the request was successful
+    #         response.raise_for_status()
+    #
+    #         # Parse the JSON response containing the text responses
+    #         data = await response.json()
 
-    # Pass the text responses to the text-to-speech function
-    await text_to_speech_input_streaming(VOICE_ID, text_iterator())
+    # # Extract the text responses from the server's response
+    # text_responses = data['response']  # Adjust if the key is different
+    #
+    # # Print the time it takes until the first sentence is received
+    # first_response_duration = datetime.datetime.now() - request_start_time
+    # print(f"Time until first sentence is received: {first_response_duration}")
+    #
+    # # Define the text_iterator as an asynchronous generator
+    # async def text_iterator():
+    #     sentences = text_responses.split(".")
+    #     sentences = [sentence.strip() for sentence in sentences if sentence]
+    #
+    #     for sentence in sentences:
+    #         print(sentence)
+    #         yield sentence
+    #
+    # # Pass the text responses to the text-to-speech function
+    # await text_to_speech_input_streaming(VOICE_ID, text_iterator())
 
 
 
