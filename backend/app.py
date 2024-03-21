@@ -27,10 +27,14 @@ def main(message: ChatMessage):
             content = chunk.choices[0].delta.content
             if content:
                 buffered_text += content
-                if '.' in buffered_text or '?' in buffered_text or '!' in buffered_text:
-                    last_period = max(buffered_text.rfind('.'), buffered_text.rfind('?'), buffered_text.rfind('!'))
-                    sentence = buffered_text[:last_period + 1]
-                    buffered_text = buffered_text[last_period + 1:]
+                if "." in buffered_text or "?" in buffered_text or "!" in buffered_text:
+                    last_period = max(
+                        buffered_text.rfind("."),
+                        buffered_text.rfind("?"),
+                        buffered_text.rfind("!"),
+                    )
+                    sentence = buffered_text[: last_period + 1]
+                    buffered_text = buffered_text[last_period + 1 :]
                     yield sentence + "\n"
 
         # Yield any remaining text after the loop finishes

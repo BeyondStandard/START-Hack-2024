@@ -1,12 +1,13 @@
-import whisper
-import requests
-from elevenlabs.client import ElevenLabs
-from elevenlabs import play
-from datetime import datetime
 import subprocess
+from datetime import datetime
+
+import requests
+import whisper
+from elevenlabs import play
+from elevenlabs.client import ElevenLabs
 
 # To add twilio/phone app thingy
-#file_path = "test_swiss_german.mp3"
+# file_path = "test_swiss_german.mp3"
 file_path = "gras.mp3"
 
 start = datetime.now()
@@ -29,26 +30,27 @@ options = whisper.DecodingOptions(language=det_lang)
 
 # result = whisper.decode(model, mel, options)
 result = model.transcribe(audio, language=det_lang)
-print(result['text'])
-process = subprocess.Popen(['python','sentiment.py',result['text']])
+print(result["text"])
+process = subprocess.Popen(["python", "sentiment.py", result["text"]])
 
 
 # print the recognized text and language
-#print(result["text"])
-#print(det_lang)
-speech_to_text = datetime.now()-start
+# print(result["text"])
+# print(det_lang)
+speech_to_text = datetime.now() - start
 time_stamp_1 = datetime.now()
-print("Speech to text: "+str(speech_to_text))
-
+print("Speech to text: " + str(speech_to_text))
 
 
 client = ElevenLabs(
-  api_key="41f1d61b1ce48269216086555aa78d33",
+    api_key="41f1d61b1ce48269216086555aa78d33",
 )
 
 print_response_time = True
 
-response = requests.post("http://localhost:8000/chat", json={"content": result["text"]}, stream=True)
+response = requests.post(
+    "http://localhost:8000/chat", json={"content": result["text"]}, stream=True
+)
 
 # Time when the request was sent (for measuring GPT response time)
 time_stamp_request_sent = datetime.now()
@@ -56,7 +58,7 @@ time_stamp_request_sent = datetime.now()
 for line in response.iter_lines():
     if line:
         # Decode the line to get the sentence
-        sentence = line.decode('utf-8')
+        sentence = line.decode("utf-8")
         print(sentence)
 
         # If this is the first line, print the time taken by GPT to respond
@@ -71,9 +73,7 @@ for line in response.iter_lines():
 
         # Perform text-to-speech on the sentence
         audio = client.generate(
-            text=sentence,
-            voice="Chris",
-            model='eleven_multilingual_v1'
+            text=sentence, voice="Chris", model="eleven_multilingual_v1"
         )
 
         # Calculate the time taken for text-to-speech conversion
@@ -86,7 +86,5 @@ for line in response.iter_lines():
         print("Audio played")
 
 
-
-
-#print("Time elapsed for generating:", end - start)
-#print("Text to speech: "+str(text_to_speech))
+# print("Time elapsed for generating:", end - start)
+# print("Text to speech: "+str(text_to_speech))
