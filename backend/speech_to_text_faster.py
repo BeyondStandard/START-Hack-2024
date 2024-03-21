@@ -33,6 +33,8 @@ async def main():
     model = whisper.load_model("base")
     audio_trim = whisper.pad_or_trim(audio)
     mel = whisper.log_mel_spectrogram(audio_trim).to(model.device)
+
+    # Detects language that the speaker is using and chooses model accordingly
     _, probs = model.detect_language(mel)
     det_lang = max(probs, key=probs.get)
     result = model.transcribe(audio, language=det_lang)
