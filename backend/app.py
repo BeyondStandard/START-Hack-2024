@@ -1,6 +1,9 @@
+import datetime
 import os
+import sys
 import time
 
+import openai
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
@@ -52,3 +55,17 @@ def test_stream(message: ChatMessage):
             time.sleep(1)  # Simulate delay
 
     return StreamingResponse(generate_numbers(), media_type="text/plain")
+
+
+@app.post("/sentiment-analysis")
+def main(message: ChatMessage):
+    openai.api_key = os.environ["OPENAI_API_KEY"]
+    message.content = (
+        f"Classify the sentiment into positive, negative or neutral:\n{message.content}"
+    )
+    response = openai.chat.completions.create(
+        model=os.environ["OPENAI_MODEL_NAME"],
+        messages=[message.model_dump()],
+    )
+
+    return response.choices[0].message.content
