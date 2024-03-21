@@ -43,9 +43,7 @@ Examples:
 
 ```shell
 # Shell
-curl -X POST -H "Content-Type: application/json" -d '{
-  "content": "Hi, how are you?",
-}' http://localhost:8000/chat
+curl -X POST -H "Content-Type: application/json" -d '{"content": "Wie findet Kantonsrat die Motion Begrenzung des Fahrkostenabzugs erhöhen – Mittelstand entlasten?"}' http://localhost:8000/chat
 ```
 
 ```python

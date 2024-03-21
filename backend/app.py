@@ -1,4 +1,4 @@
-import json
+import datetime
 import os
 import sys
 import time
@@ -8,22 +8,59 @@ from datamodel import ChatMessage
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
-from openai import OpenAI
+# from openai import OpenAI
+
+from datamodel import ChatMessage
+
+
+from langchain.prompts.prompt import PromptTemplate
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.chains import RetrievalQA
+from langchain_openai import OpenAI
 
 load_dotenv()
 app = FastAPI()
 websocket_clients = set()
 
+PROMPT_TEMPLATE_DE = """Bitte geben Sie eine prägnante und sachliche Antwort auf die Frage, basierend auf dem gegebenen Kontext. Ihre Antwort sollte klar sein und komplexe Formatierungen vermeiden, sodass sie für Text-zu-Sprache-Lesegeräte geeignet ist. Schließen Sie gesprächsähnliche Elemente wie "nun," "sehen Sie," oder ähnliche Phrasen ein, um die Antwort natürlicher klingen zu lassen. Falls Sie nicht genügend Informationen haben, um genau zu antworten, stellen Sie das bitte klar und schlagen Sie vor, wen ich für eine informiertere Antwort kontaktieren könnte, und erklären Sie, warum diese Person besser geeignet wäre, zu antworten. Konzentrieren Sie sich darauf, die sachliche Wahrheit basierend auf den folgenden Kontextstücken zu liefern:`
+
+{context}
+
+Question: {question}
+Answer:"""
+
+
 
 @app.post("/chat")
 def main(message: ChatMessage):
     def stream():
-        client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-        response_stream = client.chat.completions.create(
-            model=os.environ["OPENAI_MODEL_NAME"],
-            messages=[message.model_dump()],
-            stream=True,
+        prompt = PromptTemplate(
+            template=PROMPT_TEMPLATE_DE,
+            input_variables=["context", "question"]
         )
+        vectordb = Chroma(
+            embedding_function=OpenAIEmbeddings(model='text-embedding-3-small'),
+            persist_directory='./vectordb', )
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=OpenAI(
+                streaming=True,
+                callbacks=[StreamingStdOutCallbackHandler()],
+                temperature=0,
+                openai_api_key=os.environ["OPENAI_API_KEY"]
+            ),
+            retriever=vectordb.as_retriever(search_kwargs={'k': 10}),
+            chain_type_kwargs={'prompt': prompt}
+        )
+        response_stream = qa_chain.invoke({'query': message.content})
+
+        # client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+        # response_stream = client.chat.completions.create(
+        #     model=os.environ["OPENAI_MODEL_NAME"],
+        #     messages=[message.model_dump()],
+        #     stream=True,
+        # )
 
         buffered_text = ""
         for chunk in response_stream:
