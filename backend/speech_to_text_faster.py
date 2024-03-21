@@ -22,6 +22,8 @@ VOICE_ID = "iP95p4xoKVk53GoZ742B"
 # Set OpenAI API key
 aclient = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
+def do_sentiment_analysis(text):
+    subprocess.Popen(["python", "sentiment-analysis-request.py", text])
 
 async def main():
     # Load and process audio file with Whisper (synchronous part)
@@ -37,14 +39,13 @@ async def main():
     print(result["text"])
 
     speech_to_text_duration = datetime.now() - start
+    
+    do_sentiment_analysis(result["text"])
     print(f"Speech to text duration: {speech_to_text_duration}")
 
     # Asynchronous chat completion and text-to-speech conversion
     await chat_completion(result["text"])
 
-
-def do_sentiment_analysis(text):
-    subprocess.Popen(["python", "sentiment-analysis-request.py", text])
 
 def is_installed(lib_name):
     return shutil.which(lib_name) is not None
@@ -132,7 +133,6 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
             await websocket.send(
                 json.dumps({"text": text, "try_trigger_generation": True})
             )
-        do_sentiment_analysis(text)
         
         await websocket.send(json.dumps({"text": ""}))
 
