@@ -192,4 +192,4 @@ cython_debug/
 poetry.lock
 
 # Scrapped data
-data/data/
+/data/data/

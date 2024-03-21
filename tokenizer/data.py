@@ -70,7 +70,7 @@ class TqdmFileWrapper:
 
 
 class Data:
-    XLSX_PATH: typing.Final[str] = "data/st-gallen-data-new.xlsx"
+    XLSX_PATH: typing.Final[str] = "data/st-gallen-data.xlsx"
     PICKLE_PATH: typing.Final[str] = "data/data.pickle"
 
     def __init__(self, path):
