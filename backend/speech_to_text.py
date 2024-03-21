@@ -6,10 +6,11 @@ import whisper
 from elevenlabs import play
 from elevenlabs.client import ElevenLabs
 
-# To add twilio/phone app thingy
-# file_path = "test_swiss_german.mp3"
-file_path = "gras.mp3"
 
+# To add twilio/phone app thingy
+
+file_path = "gras.mp3"
+s
 start = datetime.now()
 
 audio = whisper.load_audio(file_path)
@@ -33,11 +34,12 @@ result = model.transcribe(audio, language=det_lang)
 print(result["text"])
 process = subprocess.Popen(["python", "sentiment.py", result["text"]])
 
-
 # print the recognized text and language
-# print(result["text"])
-# print(det_lang)
-speech_to_text = datetime.now() - start
+
+#print(result["text"])
+#print(det_lang)
+
+speech_to_text = datetime.now()-start
 time_stamp_1 = datetime.now()
 print("Speech to text: " + str(speech_to_text))
 
@@ -86,5 +88,5 @@ for line in response.iter_lines():
         print("Audio played")
 
 
-# print("Time elapsed for generating:", end - start)
-# print("Text to speech: "+str(text_to_speech))
+#print("Time elapsed for generating:", end - start)
+#print("Text to speech: "+str(text_to_speech))
