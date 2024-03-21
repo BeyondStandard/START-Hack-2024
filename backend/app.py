@@ -5,10 +5,8 @@ import os
 import sys
 import time
 
-from . import datamodel
 import dotenv
 import openai
-from . import prompt_constants
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -16,6 +14,8 @@ from langchain.chains import RetrievalQA
 from langchain.prompts.prompt import PromptTemplate
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAI, OpenAIEmbeddings
+
+from . import datamodel, prompt_constants
 
 dotenv.load_dotenv()
 app = FastAPI()
