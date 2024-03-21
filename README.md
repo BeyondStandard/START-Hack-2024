@@ -17,29 +17,10 @@ The core application logic resides in `app.py`.
 
 To get a local copy up and running follow these simple steps.
 
-#### 1. Create a virtual environment
-
+#### 1. Clone the repository
 ```shell
-python3 -m venv .venv 
-source .venv/bin/activate
+go install github.com/desertbit/grml@latest
 ```
-
-#### 2. Install dependencies
-
-```shell
-pip install poetry
-poetry install --no-root
-```
-
-#### 3. Run the app
-
-```shell
-uvicorn backend.app:app --reload --port 8000
-```
-
-#### 4. Send requests
-
-Examples:
 
 ```shell
 # Shell
