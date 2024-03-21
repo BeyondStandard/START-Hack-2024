@@ -1,11 +1,11 @@
-import datetime
+import json
 import os
 import sys
 import time
 
 import openai
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from openai import OpenAI
 
@@ -13,6 +13,7 @@ from datamodel import ChatMessage
 
 load_dotenv()
 app = FastAPI()
+websocket_clients = set()
 
 
 @app.post("/chat")
@@ -37,7 +38,7 @@ def main(message: ChatMessage):
                         buffered_text.rfind("!"),
                     )
                     sentence = buffered_text[: last_period + 1]
-                    buffered_text = buffered_text[last_period + 1 :]
+                    buffered_text = buffered_text[last_period + 1:]
                     yield sentence + "\n"
 
         # Yield any remaining text after the loop finishes
@@ -57,8 +58,19 @@ def test_stream(message: ChatMessage):
     return StreamingResponse(generate_numbers(), media_type="text/plain")
 
 
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    websocket_clients.add(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        websocket_clients.remove(websocket)
+
+
 @app.post("/sentiment-analysis")
-def main(message: ChatMessage):
+async def main(message: ChatMessage):
     openai.api_key = os.environ["OPENAI_API_KEY"]
     message.content = (
         f"Classify the sentiment into positive, negative or neutral:\n{message.content}"
@@ -68,4 +80,10 @@ def main(message: ChatMessage):
         messages=[message.model_dump()],
     )
 
-    return response.choices[0].message.content
+    prediction = {"value": response.choices[0].message.content, }
+    print(prediction, file=sys.stderr)
+    for client in websocket_clients:
+        await client.send_text(json.dumps(prediction))
+        break  # TODO: Prevent sending it twice to the frontend
+
+    return prediction

@@ -1,23 +1,23 @@
 import asyncio
-import websockets
-import json
 import base64
-import shutil
-import os
 import datetime
+import json
+import os
+import shutil
 import subprocess
-from openai import AsyncOpenAI
-import whisper
-from dotenv import load_dotenv
 from datetime import datetime
 
+import websockets
+import whisper
+from dotenv import load_dotenv
+from openai import AsyncOpenAI
 
 load_dotenv()
 
 # Define API keys and voice ID
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 ELEVENLABS_API_KEY = os.environ["ELEVENLABS_KEY"]
-VOICE_ID = 'iP95p4xoKVk53GoZ742B'
+VOICE_ID = "iP95p4xoKVk53GoZ742B"
 
 # Set OpenAI API key
 aclient = AsyncOpenAI(api_key=OPENAI_API_KEY)
@@ -34,13 +34,13 @@ async def main():
     _, probs = model.detect_language(mel)
     det_lang = max(probs, key=probs.get)
     result = model.transcribe(audio, language=det_lang)
-    print(result['text'])
+    print(result["text"])
 
     speech_to_text_duration = datetime.now() - start
     print(f"Speech to text duration: {speech_to_text_duration}")
 
     # Asynchronous chat completion and text-to-speech conversion
-    await chat_completion(result['text'])
+    await chat_completion(result["text"])
 
 
 def is_installed(lib_name):
@@ -78,7 +78,9 @@ async def stream(audio_stream):
 
     mpv_process = subprocess.Popen(
         ["mpv", "--no-cache", "--no-terminal", "--", "fd://0"],
-        stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
 
     print("Started streaming audio")
@@ -97,11 +99,15 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
     uri = f"wss://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream-input?model_id=eleven_multilingual_v1"
 
     async with websockets.connect(uri) as websocket:
-        await websocket.send(json.dumps({
-            "text": " ",
-            "voice_settings": {"stability": 0.5, "similarity_boost": 0.8},
-            "xi_api_key": ELEVENLABS_API_KEY,
-        }))
+        await websocket.send(
+            json.dumps(
+                {
+                    "text": " ",
+                    "voice_settings": {"stability": 0.5, "similarity_boost": 0.8},
+                    "xi_api_key": ELEVENLABS_API_KEY,
+                }
+            )
+        )
 
         async def listen():
             """Listen to the websocket for audio data and stream it."""
@@ -111,7 +117,7 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
                     data = json.loads(message)
                     if data.get("audio"):
                         yield base64.b64decode(data["audio"])
-                    elif data.get('isFinal'):
+                    elif data.get("isFinal"):
                         break
                 except websockets.exceptions.ConnectionClosed:
                     print("Connection closed")
@@ -120,7 +126,9 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
         listen_task = asyncio.create_task(stream(listen()))
 
         async for text in text_chunker(text_iterator):
-            await websocket.send(json.dumps({"text": text, "try_trigger_generation": True}))
+            await websocket.send(
+                json.dumps({"text": text, "try_trigger_generation": True})
+            )
 
         await websocket.send(json.dumps({"text": ""}))
 
@@ -129,8 +137,12 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
 
 async def chat_completion(query):
     """Retrieve text from OpenAI and pass it to the text-to-speech function."""
-    response = await aclient.chat.completions.create(model='gpt-3.5-turbo-0125', messages=[{'role': 'user', 'content': query}],
-    temperature=1, stream=True)
+    response = await aclient.chat.completions.create(
+        model="gpt-3.5-turbo-0125",
+        messages=[{"role": "user", "content": query}],
+        temperature=1,
+        stream=True,
+    )
 
     async def text_iterator():
         async for chunk in response:
@@ -143,5 +155,3 @@ async def chat_completion(query):
 # Main execution
 if __name__ == "__main__":
     asyncio.run(main())
-
-
