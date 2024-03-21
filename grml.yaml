@@ -2,6 +2,8 @@ version: 2
 project: start
 
 options:
+    skipBinaries: true
+
     gptModel:
         - gpt-3.5-turbo-0125
         - gpt-3.5-turbo
@@ -22,6 +24,9 @@ options:
         - text-embedding-ada-002
         - text-embedding-3-large
 
+import:
+    - scripts/grml.sh
+
 commands:
     setup:
         help: setup the project
@@ -30,13 +35,14 @@ commands:
             source .venv/bin/activate
             pip install poetry
             poetry install --no-root
+            sh scripts/api.sh
             
+            skipBinaries
             wget -q --show-progress -P data https://djstarthackathon.blob.core.windows.net/data/data.zip
             unzip data/data.zip -d data
             rm data/data.zip
             
-            sh api.sh
-        
+
         commands:
             windows:
                 help: setup the project for windows
