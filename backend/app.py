@@ -1,25 +1,28 @@
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain_community.vectorstores import Chroma
-from langchain.prompts.prompt import PromptTemplate
-from langchain_openai import OpenAIEmbeddings, OpenAI
-from langchain.chains import RetrievalQA
-
-from fastapi.responses import StreamingResponse
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import base64
+import json
+import logging
+import os
+import sys
+import time
 
 import dotenv
 import openai
-import json
-import time
-import sys
-import os
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import StreamingResponse
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.chains import RetrievalQA
+from langchain.prompts.prompt import PromptTemplate
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAI, OpenAIEmbeddings
 
-from . import prompt_constants
-from . import datamodel
-
+from . import datamodel, prompt_constants
 
 dotenv.load_dotenv()
 app = FastAPI()
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler("log_file.log")
+file_handler.setLevel(logging.DEBUG)
 websocket_clients = set()
 
 
@@ -28,23 +31,24 @@ def main(message: datamodel.ChatMessage):
     def stream():
         prompt = PromptTemplate(
             template=prompt_constants.PROMPT_TEMPLATE_DE,
-            input_variables=["context", "question"]
+            input_variables=["context", "question"],
         )
         vectordb = Chroma(
-            embedding_function=OpenAIEmbeddings(model='text-embedding-3-small'),
-            persist_directory='./vectordb', )
+            embedding_function=OpenAIEmbeddings(model="text-embedding-3-small"),
+            persist_directory="./vectordb",
+        )
         qa_chain = RetrievalQA.from_chain_type(
             llm=OpenAI(
                 streaming=True,
                 callbacks=[StreamingStdOutCallbackHandler()],
                 temperature=0,
-                openai_api_key=os.environ["OPENAI_API_KEY"]
+                openai_api_key=os.environ["OPENAI_API_KEY"],
             ),
-            retriever=vectordb.as_retriever(search_kwargs={'k': 10}),
-            chain_type_kwargs={'prompt': prompt}
+            retriever=vectordb.as_retriever(search_kwargs={"k": 10}),
+            chain_type_kwargs={"prompt": prompt},
         )
-        response_stream = qa_chain.invoke({'query': message.content})
-
+        response_stream = qa_chain.invoke({"query": message.content})
+        print(response_stream, file=sys.stderr)
         # client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         # response_stream = client.chat.completions.create(
         #     model=os.environ["OPENAI_MODEL_NAME"],
@@ -54,7 +58,9 @@ def main(message: datamodel.ChatMessage):
 
         buffered_text = ""
         for chunk in response_stream:
+            print(chunk, file=sys.stderr)
             content = chunk.choices[0].delta.content
+            print(content, file=sys.stderr)
             if content:
                 buffered_text += content
                 if "." in buffered_text or "?" in buffered_text or "!" in buffered_text:
@@ -109,9 +115,49 @@ async def main(message: datamodel.ChatMessage):
     prediction = {
         "value": response.choices[0].message.content,
     }
-    print(prediction, file=sys.stderr)
+    print(f"sentiment prediction: {prediction}", file=sys.stderr)
     for client in websocket_clients:
         await client.send_text(json.dumps(prediction))
         break  # TODO: Prevent sending it twice to the frontend
 
     return prediction
+
+
+@app.websocket("/media")
+async def websocket_endpoint(websocket: WebSocket):
+    logger.info("Connection accepted")
+    # A lot of messages will be sent rapidly. We'll stop showing after the first one.
+    has_seen_media = False
+    message_count = 0
+    await websocket.accept()
+    while True:
+        data = await websocket.receive_text()
+        message = json.loads(data)
+        if message is None:
+            logger.info("No message received...")
+            continue
+
+        # Using the event type you can determine what type of message you are receiving
+        if message["event"] == "connected":
+            logger.info("Connected Message received: {}".format(data))
+        if message["event"] == "start":
+            logger.info("Start Message received: {}".format(data))
+        if message["event"] == "media":
+            if not has_seen_media:
+                logger.info("Media message: {}".format(data))
+                payload = message["media"]["payload"]
+                logger.info("Payload is: {}".format(payload))
+                chunk = base64.b64decode(payload)
+                logger.info("That's {} bytes".format(len(chunk)))
+                logger.info(
+                    "Additional media messages from WebSocket are being suppressed...."
+                )
+                has_seen_media = True
+        if message["event"] == "closed":
+            logger.info("Closed Message received: {}".format(data))
+            break
+        message_count += 1
+
+    logger.info(
+        "Connection closed. Received a total of {} messages".format(message_count)
+    )

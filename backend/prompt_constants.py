@@ -1,6 +1,5 @@
 import typing
 
-
 PROMPT_DE: typing.Final[str] = (
     "Bitte geben Sie eine prägnante und sachliche Antwort auf die Frage, "
     "basierend auf dem gegebenen Kontext. Ihre Antwort sollte klar sein und "
@@ -15,10 +14,12 @@ PROMPT_DE: typing.Final[str] = (
     "basierend auf den folgenden Kontextstücken zu liefern:"
 )
 
-PROMPT_TEMPLATE_DE: typing.Final[str] = PROMPT_DE + \
-    """
+PROMPT_TEMPLATE_DE: typing.Final[str] = (
+    PROMPT_DE
+    + """
     
     {context}
     -----
     Frage: {question}
     Antwort:"""
+)

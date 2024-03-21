@@ -10,7 +10,7 @@ authors = [
     "Mudassar Zahid <mudassar.zahid@studium.uni-hamburg.de>",
     "Shreyasvi Natraj <shreyasvi.natraj@unige.ch>",
     "Justus Beck <justus.beck@campus.lmu.de>",
-    "Mantas Kandrataviçius <>"
+    "Mantas Kandratavičius <ge25ban@tum.de>"
 ]
 readme = "README.md"
 
@@ -26,6 +26,9 @@ openai = "^1.14.2"
 python-dotenv = "^1.0.1"
 elevenlabs = "1.0.0b1"
 filelock = "3.13.1"
+langchain = "^0.1.13"
+chromadb = "^0.4.24"
+langchain-openai = "^0.1.0"
 
 [tool.poetry.group.dev.dependencies]
 types-requests = "^2.31.0.20240311"
