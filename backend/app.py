@@ -23,7 +23,6 @@ from . import prompt_constants, datamodel
 # Load environment variables
 dotenv.load_dotenv()
 
-
 # Logger constants
 LOGGER_DATE_FORMAT: typing.Final[str] = '%H:%M:%S'
 LOGGER_FORMAT: typing.Final[str] = \
@@ -46,51 +45,30 @@ app = FastAPI()
 websocket_clients = set()
 
 
-@app.post("/chat")
+@app.post('/chat')
 def main(message: datamodel.ChatMessage):
     async def stream():
         prompt = PromptTemplate(
             template=prompt_constants.PROMPT_TEMPLATE_DE,
-            input_variables=["context", "question"],
+            input_variables=['context', 'question'],
         )
         vectordb = Chroma(
-            embedding_function=OpenAIEmbeddings(model="text-embedding-3-small"),
-            persist_directory="./vectordb",
+            embedding_function=OpenAIEmbeddings(
+                model=os.environ['embeddingModel']),
+            persist_directory='./vectordb',
         )
         qa_chain = RetrievalQA.from_chain_type(
             llm=OpenAI(
                 streaming=True,
                 callbacks=[StreamingStdOutCallbackHandler()],
                 temperature=0,
-                openai_api_key=os.environ["OPENAI_API_KEY"],
+                openai_api_key=os.environ['OPENAI_API_KEY'],
             ),
-            retriever=vectordb.as_retriever(search_kwargs={"k": 10}),
-            chain_type_kwargs={"prompt": prompt},
+            retriever=vectordb.as_retriever(search_kwargs={'k': 10}),
+            chain_type_kwargs={'prompt': prompt},
         )
-        response_stream = qa_chain.invoke({"query": message.content})
-        yield response_stream["result"]
-
-        """
-        buffered_text = ""
-        for chunk in response_stream["result"]:
-            # content = chunk.choices[0].delta.content
-            content = chunk
-            if content:
-                buffered_text += content
-                if "." in buffered_text or "?" in buffered_text or "!" in buffered_text:
-                    last_period = max(
-                        buffered_text.rfind("."),
-                        buffered_text.rfind("?"),
-                        buffered_text.rfind("!"),
-                    )
-                    sentence = buffered_text[: last_period + 1]
-                    buffered_text = buffered_text[last_period + 1:]
-                    yield sentence + "\n"
-
-        # Yield any remaining text after the loop finishes
-        if buffered_text:
-            yield buffered_text
-        """
+        response_stream = qa_chain.invoke({'query': message.content})
+        yield response_stream['result']
 
     return StreamingResponse(stream())
 
@@ -153,14 +131,14 @@ async def websocket_endpoint(websocket: WebSocket):
             continue
 
         # Using the event type you can determine what type of message you are receiving
-        if message["event"] == "connected":
+        if message['event'] == 'connected':
             logger.info("Connected Message received: {}".format(data))
-        if message["event"] == "start":
+        if message['event'] == 'start':
             logger.info("Start Message received: {}".format(data))
-        if message["event"] == "media":
+        if message['event'] == 'media':
             if not has_seen_media:
                 logger.info("Media message: {}".format(data))
-                payload = message["media"]["payload"]
+                payload = message['media']['payload']
                 logger.info("Payload is: {}".format(payload))
                 chunk = base64.b64decode(payload)
                 logger.info("That's {} bytes".format(len(chunk)))

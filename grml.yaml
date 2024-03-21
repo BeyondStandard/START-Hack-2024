@@ -54,3 +54,10 @@ commands:
                 exec: |
                     source .venv/bin/activate
                     python3 tokenizer/pickle_data.py
+
+    ask:
+        help: ask the server a question
+        args:
+            - query
+        exec: |
+            curl -X POST -H "Content-Type: application/json" -d '{"content": "'"${query}"'"}' http://localhost:8000/chat

@@ -21,5 +21,5 @@ PROMPT_TEMPLATE_DE: typing.Final[str] = (
     {context}
     -----
     Frage: {question}
-    Antwort:"""
+    Antwort: """
 )

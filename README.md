@@ -22,11 +22,6 @@ To get a local copy up and running follow these simple steps.
 go install github.com/desertbit/grml@latest
 ```
 
-```shell
-# Shell
-curl -X POST -H "Content-Type: application/json" -d '{"content": "Wie findet Kantonsrat die Motion Begrenzung des Fahrkostenabzugs erhöhen – Mittelstand entlasten?"}' http://localhost:8000/chat
-```
-
 ```python
 # Python
 import json
