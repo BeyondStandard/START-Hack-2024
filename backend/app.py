@@ -48,7 +48,7 @@ websocket_clients = set()
 
 @app.post("/chat")
 def main(message: datamodel.ChatMessage):
-    def stream():
+    async def stream():
         prompt = PromptTemplate(
             template=prompt_constants.PROMPT_TEMPLATE_DE,
             input_variables=["context", "question"],
@@ -68,19 +68,13 @@ def main(message: datamodel.ChatMessage):
             chain_type_kwargs={"prompt": prompt},
         )
         response_stream = qa_chain.invoke({"query": message.content})
-        print(response_stream, file=sys.stderr)
-        # client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-        # response_stream = client.chat.completions.create(
-        #     model=os.environ["OPENAI_MODEL_NAME"],
-        #     messages=[message.model_dump()],
-        #     stream=True,
-        # )
+        yield response_stream["result"]
 
+        """
         buffered_text = ""
-        for chunk in response_stream:
-            print(chunk, file=sys.stderr)
-            content = chunk.choices[0].delta.content
-            print(content, file=sys.stderr)
+        for chunk in response_stream["result"]:
+            # content = chunk.choices[0].delta.content
+            content = chunk
             if content:
                 buffered_text += content
                 if "." in buffered_text or "?" in buffered_text or "!" in buffered_text:
@@ -90,12 +84,13 @@ def main(message: datamodel.ChatMessage):
                         buffered_text.rfind("!"),
                     )
                     sentence = buffered_text[: last_period + 1]
-                    buffered_text = buffered_text[last_period + 1 :]
+                    buffered_text = buffered_text[last_period + 1:]
                     yield sentence + "\n"
 
         # Yield any remaining text after the loop finishes
         if buffered_text:
             yield buffered_text
+        """
 
     return StreamingResponse(stream())
 

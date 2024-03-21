@@ -1,6 +1,6 @@
 import data
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     data = data.Data(data.Data.XLSX_PATH)
     # data.load_from_pickle()
     #
