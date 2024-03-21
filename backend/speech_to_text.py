@@ -1,18 +1,9 @@
-"""
-from openai import OpenAI
-client = OpenAI(api_key = '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')
-
-audio_file= open("test_swiss_german.mp3", "rb")
-transcription = client.audio.transcriptions.create(
-  model="whisper-1", 
-  file=audio_file
-)
-print(transcription.text)
-"""
-
 import whisper
 import requests
+from elevenlabs.client import ElevenLabs
+from elevenlabs import play
 
+# To add twilio/phone app thingy
 file_path = "test_swiss_german.mp3"
 
 audio = whisper.load_audio(file_path)
@@ -42,4 +33,20 @@ response = requests.post(
     "http://localhost:8000/chat",
     json={"content": result["text"]}
 )
+
+#Reponse Text output
 print(response.text)
+
+client = ElevenLabs(
+  api_key="41f1d61b1ce48269216086555aa78d33",
+)
+
+
+audio = client.generate(
+    text=response.text,
+    voice="Chris",
+    model='eleven_multilingual_v1'
+)
+
+#print("Time elapsed for generating:", end - start)
+play(audio)

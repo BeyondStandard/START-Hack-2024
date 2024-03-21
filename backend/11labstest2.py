@@ -2,7 +2,6 @@ from elevenlabs.client import ElevenLabs
 from elevenlabs import play
 import datetime as dt
 
-
 start = dt.datetime.now()
 
 client = ElevenLabs(
@@ -18,6 +17,5 @@ audio = client.generate(
 
 end = dt.datetime.now()
 
-print("Time elapsed for generating:", end - start)
-
+#print("Time elapsed for generating:", end - start)
 play(audio)
