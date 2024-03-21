@@ -38,3 +38,9 @@ response = requests.post(
 )
 print(json.dumps(response.json(), indent=2))
 ```
+
+## Alternate Installation
+If Anaconda is installed, use the following commands to run the pipeline:
+
+`conda env create -f environment.yml`
+`python runner.py`
