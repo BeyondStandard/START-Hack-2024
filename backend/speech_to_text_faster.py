@@ -23,7 +23,7 @@ VOICE_ID = "iP95p4xoKVk53GoZ742B"
 aclient = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 def do_sentiment_analysis(text):
-    subprocess.Popen(["python", "sentiment-analysis-request.py", text])
+    subprocess.Popen(["python", os.path.join("backend","sentiment-analysis-request.py"), text])
 
 async def main():
     # Load and process audio file with Whisper (synchronous part)
