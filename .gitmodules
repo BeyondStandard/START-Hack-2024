@@ -1,0 +1,3 @@
+[submodule "data"]
+	path = data
+	url = https://github.com/START-Hack/CantonOfStGallen_STARTHACK24
