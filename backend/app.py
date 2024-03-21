@@ -98,7 +98,7 @@ async def websocket_endpoint(websocket: WebSocket):
 async def main(message: datamodel.ChatMessage):
     openai.api_key = os.environ["OPENAI_API_KEY"]
     message.content = (
-        f"Classify the sentiment into positive, negative or neutral:\n{message.content}"
+        f"Classify the sentiment into positive, negative or neutral and give a probability of different emotions:\n{message.content}"
     )
     response = openai.chat.completions.create(
         model=os.environ["OPENAI_MODEL_NAME"],
