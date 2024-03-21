@@ -16,7 +16,7 @@ def do_sentiment_analysis(text):
 def do_speech_to_text():
     # To add twilio/phone app thingy
     # file_path = "test_swiss_german.mp3"
-    file_path = "../audio/gras.mp3"
+    file_path = "recorded.mp3"
 
     start = datetime.now()
 

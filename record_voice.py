@@ -6,13 +6,18 @@ from scipy.io.wavfile import write
 import pyaudio
 import io
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+subprocess.Popen(["uvicorn", "backend.app:app","--reload","--port","8000"])
+
 
 CHUNK_SIZE = 1024
 MIN_VOLUME = 2600
 BUF_MAX_SIZE = CHUNK_SIZE * 10
 q = asyncio.Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK_SIZE)))
 stop_event = asyncio.Event()
-wf = wave.open("output.wav", "wb")
+wf = wave.open("recorded.mp4", "wb")
 wf.setnchannels(2)
 wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
 wf.setframerate(44100)
@@ -38,7 +43,7 @@ async def record(q):
             if pause_timer == 50:
                 print("break now")
                 wf.close()
-                # os.system('python runner.py')
+                os.system('python backend/speech_to_text.py')
                 stop_event.set()
 
 
