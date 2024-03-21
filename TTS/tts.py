@@ -1,33 +1,29 @@
-import asyncio
-import aiohttp
-import httpx
-import base64
+import subprocess
+import websockets
 import datetime
+import aiohttp
+import asyncio
+import whisper
+import dotenv
+import base64
+import openai
+import shutil
 import json
 import os
-import shutil
-import subprocess
-from datetime import datetime
 
-import websockets
-import whisper
-from dotenv import load_dotenv
-from openai import AsyncOpenAI
+import voices
 
-
-text_to_speech_start_time = None
-gpt_start_time = None
-
-
-load_dotenv()
+dotenv.load_dotenv()
 
 # Define API keys and voice ID
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 ELEVENLABS_API_KEY = os.environ["ELEVENLABS_KEY"]
-VOICE_ID = "iP95p4xoKVk53GoZ742B"
+VOICE_ID = voices.VOICE_IDS[os.environ["voice"]]
 
+text_to_speech_start_time = None
+gpt_start_time = None
 # Set OpenAI API key
-aclient = AsyncOpenAI(api_key=OPENAI_API_KEY)
+aclient = openai.AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 
 def do_sentiment_analysis(text):
@@ -36,8 +32,8 @@ def do_sentiment_analysis(text):
 
 async def main():
     # Load and process audio file with Whisper (synchronous part)
-    file_path = "gras.mp3"
-    start = datetime.now()
+    file_path = "audio/gras.mp3"
+    start = datetime.datetime.now()
     audio = whisper.load_audio(file_path)
     model = whisper.load_model("base")
     audio_trim = whisper.pad_or_trim(audio)
@@ -49,13 +45,13 @@ async def main():
     result = model.transcribe(audio, language=det_lang)
     print(result["text"])
 
-    speech_to_text_duration = datetime.now() - start
+    speech_to_text_duration = datetime.datetime.now() - start
 
     # do_sentiment_analysis(result["text"])
     print(f"Speech to text duration: {speech_to_text_duration}")
 
     global gpt_start_time
-    gpt_start_time = datetime.now()
+    gpt_start_time = datetime.datetime.now()
 
     # Asynchronous chat completion and text-to-speech conversion
     await chat_completion(result["text"])
@@ -108,7 +104,7 @@ async def stream(audio_stream):
         if chunk:
             if first_chunk:
                 # Messung der Zeit bis zum Beginn der Sprachausgabe
-                speech_start_duration = datetime.now() - text_to_speech_start_time
+                speech_start_duration = datetime.datetime.now() - text_to_speech_start_time
                 print(f"Time until speech starts: {speech_start_duration}")
                 first_chunk = False
             mpv_process.stdin.write(chunk)
@@ -123,7 +119,7 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
     """Send text to ElevenLabs API and stream the returned audio."""
     uri = f"wss://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream-input?model_id=eleven_multilingual_v1"
     global text_to_speech_start_time
-    text_to_speech_start_time = datetime.now()
+    text_to_speech_start_time = datetime.datetime.now()
 
     async with websockets.connect(uri) as websocket:
         await websocket.send(
@@ -167,7 +163,7 @@ async def chat_completion(query):
     url = 'http://localhost:8000/chat/'  # Replace with your actual server URL if different
 
     # Mark the start time before sending the request
-    request_start_time = datetime.now()
+    request_start_time = datetime.datetime.now()
 
     # Use aiohttp to send the query to the server
     async with aiohttp.ClientSession() as session:
@@ -182,7 +178,7 @@ async def chat_completion(query):
     text_responses = data['response']  # Adjust if the key is different
 
     # Print the time it takes until the first sentence is received
-    first_response_duration = datetime.now() - request_start_time
+    first_response_duration = datetime.datetime.now() - request_start_time
     print(f"Time until first sentence is received: {first_response_duration}")
 
     # Define the text_iterator as an asynchronous generator

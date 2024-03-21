@@ -112,6 +112,12 @@ commands:
                             conda activate st_gallen_env
                             uvicorn backend.app:app --reload --port 8000
 
+            tts:
+                help: launch the text-to-speech
+                exec: |
+                    source .venv/bin/activate
+                    python3 TTS/tts.py
+
     tokenize:
         help: tokenize the data
         commands:

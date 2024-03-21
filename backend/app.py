@@ -3,11 +3,11 @@ from langchain_community.vectorstores import Chroma
 from langchain.prompts.prompt import PromptTemplate
 from langchain_openai import OpenAI, OpenAIEmbeddings
 from langchain.chains import RetrievalQA
-from openai import AsyncOpenAI
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 
+import asyncio
 import logging
 import base64
 import dotenv
@@ -17,12 +17,9 @@ import json
 import time
 import sys
 import os
-import asyncio
 
 from pydantic import BaseModel
 import traceback
-
-
 
 # noinspection PyPackages
 from . import prompt_constants, datamodel
