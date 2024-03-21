@@ -13,7 +13,6 @@ def record(outputFile):
      
 #Calling pyadio module and starting recording 
     p = pyaudio.PyAudio()
- 
     stream = p.open(format=FORMAT,
                 channels=CHANNELS, 
                 rate=RATE, 
