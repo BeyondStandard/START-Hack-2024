@@ -30,8 +30,10 @@ async def record(q):
         chunk = await q.get()
         vol = max(chunk)
         if vol >= MIN_VOLUME:
+            print("0")
             pause_timer = 1
         else:
+            print("-")
             pause_timer = pause_timer + 1
             if pause_timer == 50:
                 print("break now")
@@ -51,7 +53,14 @@ async def listen(q):
 
     while not stop_event.is_set():
         try:
-            await q.put(array('h', stream.read(CHUNK_SIZE)))
+            data = array('h', stream.read(CHUNK_SIZE))
+            await q.put(data)
+            # Write chunk to wave file
+            try:
+                wf.writeframes(data.tobytes())
+            except:
+                # TODO
+                pass
         except asyncio.queues.QueueFull:
             return  # discard
 
