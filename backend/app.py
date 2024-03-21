@@ -63,7 +63,7 @@ async def chat_endpoint(chat_query: ChatMessage):
         )
         vectordb = Chroma(
             embedding_function=OpenAIEmbeddings(model=os.environ['embeddingModel']),
-            persist_directory='./vectordb',
+            persist_directory='data/vectordb',
         )
         qa_chain = RetrievalQA.from_chain_type(
             llm=OpenAI(
@@ -77,7 +77,8 @@ async def chat_endpoint(chat_query: ChatMessage):
         )
 
         # Invoke the QA chain with the query
-        response_stream = await asyncio.to_thread(qa_chain.invoke, {'query': chat_query.content})
+        response_stream = await asyncio.to_thread(
+            qa_chain.invoke, {'query': chat_query.content})
 
         # Return the result as a JSON response
         return JSONResponse(content={"response": response_stream['result']})

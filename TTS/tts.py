@@ -167,7 +167,7 @@ async def chat_completion(query):
 
     # Use aiohttp to send the query to the server
     async with aiohttp.ClientSession() as session:
-        async with session.post(url, json={"query": query}) as response:
+        async with session.post(url, json={'content': query}) as response:
             # Ensure the request was successful
             response.raise_for_status()
 
@@ -183,10 +183,12 @@ async def chat_completion(query):
 
     # Define the text_iterator as an asynchronous generator
     async def text_iterator():
-        for content in text_responses:
-            # Print each sentence as it is received
-            print(content)
-            yield content
+        sentences = text_responses.split(".")
+        sentences = [sentence.strip() for sentence in sentences if sentence]
+
+        for sentence in sentences:
+            print(sentence)
+            yield sentence
 
     # Pass the text responses to the text-to-speech function
     await text_to_speech_input_streaming(VOICE_ID, text_iterator())
