@@ -92,7 +92,7 @@ async def main():
     # Asynchronous chat completion and text-to-speech conversion
     #asyncio.run(chat_completion("Wieviel Porto kostet der Versand eines schweizer Kinderreisepasses im Kanton St. Gallen?"))
 
-    await chat_completion("Wieviel Porto kostet der Versand eines schweizer Kinderreisepasses im Kanton St. Gallen?")
+    await chat_completion("Wie viele Einwohner hat unser Kanton?")
 
 
 def is_installed(lib_name):
@@ -199,10 +199,12 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
 async def chat_completion(query):
     i = 0
     complete_text = ''
-    url = 'http://localhost:8000/chat/'  # Adjust as needed
+    url = 'http://localhost:8000/stream/'  # Adjust as needed
     async with aiohttp.ClientSession() as session:
         # Make a POST request and await the response
+        print("Sending request to chat API")
         async with session.post(url, json={'content': query}) as response:
+
             # Stream the response
             async for data_chunk in response.content.iter_chunked(1024):
                 i += 1
