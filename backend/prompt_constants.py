@@ -15,8 +15,11 @@ PROMPT_DE: typing.Final[str] = (
     "zurück:"
 )
 
-PROMPT_TEMPLATE_DE: typing.Final[str] = PROMPT_DE + """
+PROMPT_TEMPLATE_DE: typing.Final[str] = (
+    PROMPT_DE
+    + """
 {context}
 -----
 Frage: {question}
 Antwort: """
+)

@@ -16,14 +16,15 @@ if __name__ == "__main__":
 
     documents = []
     text_splitter = CharacterTextSplitter(
-        separator='.', chunk_size=1000, chunk_overlap=200)
+        separator=".", chunk_size=1000, chunk_overlap=200
+    )
 
     for datapoint in data.yield_datapoints():
         documents.extend(text_splitter.split_documents(datapoint.load()))
 
     vectordb = Chroma.from_documents(
         documents,
-        persist_directory='data/vectordb',
-        embedding=OpenAIEmbeddings(model=os.environ['embeddingModel']),
+        persist_directory="data/vectordb",
+        embedding=OpenAIEmbeddings(model=os.environ["embeddingModel"]),
     )
     vectordb.persist()

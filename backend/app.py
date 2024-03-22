@@ -30,20 +30,21 @@ os.environ["LANGCHAIN_PROJECT"] = f"Tracing - {uuid.uuid4().hex[:8]}"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 
 # Logger constants
-LOGGER_DATE_FORMAT: typing.Final[str] = '%H:%M:%S'
-LOGGER_FORMAT: typing.Final[str] = \
-    '%(asctime)s.%(msecs)03d | [%(lineno)3s] %(levelname)-9s| %(message)s'
+LOGGER_DATE_FORMAT: typing.Final[str] = "%H:%M:%S"
+LOGGER_FORMAT: typing.Final[str] = (
+    "%(asctime)s.%(msecs)03d | [%(lineno)3s] %(levelname)-9s| %(message)s"
+)
 FILE_LOGGER_FORMATTER = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
-FILE_LOGGER_NAME: typing.Final[str] = 'log_file.log'
+FILE_LOGGER_NAME: typing.Final[str] = "log_file.log"
 FILE_LOGGER_LEVEL: typing.Final[int] = logging.DEBUG
 
 # Set up file logging
-file_handler = logging.FileHandler(FILE_LOGGER_NAME, mode='w')
+file_handler = logging.FileHandler(FILE_LOGGER_NAME, mode="w")
 file_handler.setFormatter(FILE_LOGGER_FORMATTER)
 file_handler.setLevel(FILE_LOGGER_LEVEL)
 
 # Set up logging
-logger = logging.getLogger('uvicorn')
+logger = logging.getLogger("uvicorn")
 logger.addHandler(file_handler)
 
 # Set up everything
@@ -72,27 +73,26 @@ class GPTChatter:
 
         prompt = PromptTemplate(
             template=prompt_constants.PROMPT_TEMPLATE_DE,
-            input_variables=['context', 'question'],
+            input_variables=["context", "question"],
         )
         vectordb = Chroma(
-            persist_directory='data/vectordb',
-            embedding_function=OpenAIEmbeddings(
-                model=os.environ['embeddingModel']),
+            persist_directory="data/vectordb",
+            embedding_function=OpenAIEmbeddings(model=os.environ["embeddingModel"]),
         )
-        r = vectordb.as_retriever(search_kwargs={'k': 10})
+        r = vectordb.as_retriever(search_kwargs={"k": 10})
         self.qa_chain = RetrievalQA.from_chain_type(
             llm=OpenAI(
                 streaming=True,
                 callbacks=[self.callback],
                 temperature=0,
-                openai_api_key=os.environ['OPENAI_API_KEY'],
+                openai_api_key=os.environ["OPENAI_API_KEY"],
             ),
             retriever=r,
-            chain_type_kwargs={'prompt': prompt},
+            chain_type_kwargs={"prompt": prompt},
         )
 
     def _ask(self, message: str) -> dict[str, typing.Any]:
-        return self.qa_chain.invoke({'query': message})
+        return self.qa_chain.invoke({"query": message})
 
     async def _response(self):
         while not self.complete:
@@ -105,8 +105,7 @@ class GPTChatter:
     async def ask(self, message: str) -> dict[str, typing.Any]:
         self.complete = False
         loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(
-            None, self._ask, message)
+        result = await loop.run_in_executor(None, self._ask, message)
 
         self.complete = True
         return result
@@ -119,19 +118,19 @@ class GPTChatter:
 chatter = GPTChatter()
 
 
-@app.post('/chat')
+@app.post("/chat")
 async def stream(message: datamodel.ChatMessage):
     response = await asyncio.create_task(chatter.ask(message.content))
     for key, value in response.items():
         logger.info(f"{key}: {value}")
 
-    return response['result']
+    return response["result"]
 
 
-@app.post('/stream')
+@app.post("/stream")
 async def stream(message: datamodel.ChatMessage):
     _ = asyncio.create_task(chatter.ask(message.content))
-    return StreamingResponse(chatter.response(), media_type='text/plain')
+    return StreamingResponse(chatter.response(), media_type="text/plain")
 
 
 @app.websocket("/ws")
@@ -159,12 +158,12 @@ async def main(message: datamodel.ChatMessage):
     )
 
     prediction = json.loads(response.choices[0].message.content.lower())
-    prediction["timestamp"] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    prediction["timestamp"] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     json_path = os.path.join("frontend", "ratings.json")
-    with open(json_path, 'r') as f:
+    with open(json_path, "r") as f:
         data = json.load(f)
         data.append(prediction)
-    with open(json_path, 'w') as f:
+    with open(json_path, "w") as f:
         json.dump(data, f, indent=4)
 
     logger.info(f"[sentiment / emotion analysis] {prediction}")
@@ -190,14 +189,14 @@ async def websocket_endpoint(websocket: WebSocket):
             continue
 
         # Using the event type you can determine what type of message you are receiving
-        if message['event'] == 'connected':
+        if message["event"] == "connected":
             logger.info("Connected Message received: {}".format(data))
-        if message['event'] == 'start':
+        if message["event"] == "start":
             logger.info("Start Message received: {}".format(data))
-        if message['event'] == 'media':
+        if message["event"] == "media":
             if not has_seen_media:
                 logger.info("Media message: {}".format(data))
-                payload = message['media']['payload']
+                payload = message["media"]["payload"]
                 logger.info("Payload is: {}".format(payload))
                 chunk = base64.b64decode(payload)
                 logger.info("That's {} bytes".format(len(chunk)))

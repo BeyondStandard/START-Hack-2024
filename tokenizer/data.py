@@ -11,35 +11,33 @@ import bs4
 import os
 
 # URLs
-URL_1 = 'https://www.sg.ch/'
-URL_2 = 'http://portal.sg.oca.ch'
+URL_1 = "https://www.sg.ch/"
+URL_2 = "http://portal.sg.oca.ch"
 
 
 # excel column headers
-SOURCE_HEADER: typing.Final[str] = 'source'
-PATH_HEADER: typing.Final[str] = 'path_to_data_files'
-VOICE_URL_HEADER: typing.Final[str] = 'voice_url'
+SOURCE_HEADER: typing.Final[str] = "source"
+PATH_HEADER: typing.Final[str] = "path_to_data_files"
+VOICE_URL_HEADER: typing.Final[str] = "voice_url"
 
 # UTF-8 encoding has been messed up by the original parsing
 REPL: typing.Final[dict[str, str]] = {
-    '\xa0': ' ',
-    '&auml;': 'ä',
-    '&ouml;': 'ö',
-    '&uuml;': 'ü',
-    '&Auml;': 'Ä',
-    '&Ouml;': 'Ö',
-    '&Uuml;': 'Ü',
-    '&szlig;': 'ß',
+    "\xa0": " ",
+    "&auml;": "ä",
+    "&ouml;": "ö",
+    "&uuml;": "ü",
+    "&Auml;": "Ä",
+    "&Ouml;": "Ö",
+    "&Uuml;": "Ü",
+    "&szlig;": "ß",
 }
 
 
 def string_clean(string: str):
-    string = functools.reduce(
-        lambda s, kv: s.replace(*kv), REPL.items(), string
-    )
+    string = functools.reduce(lambda s, kv: s.replace(*kv), REPL.items(), string)
 
-    binary = string.encode('latin1', errors='replace')
-    return binary.decode('utf-8', errors='replace')
+    binary = string.encode("latin1", errors="replace")
+    return binary.decode("utf-8", errors="replace")
 
 
 def set_nested_value(dict_obj, keys, value):
@@ -50,9 +48,9 @@ def set_nested_value(dict_obj, keys, value):
 
 
 class DatapointBSHTMLLoader(BSHTMLLoader):
-    SOURCE_METADATA: typing.Final[str] = 'source'
-    TITLE_METADATA: typing.Final[str] = 'title'
-    URL_METADATA: typing.Final[str] = 'url'
+    SOURCE_METADATA: typing.Final[str] = "source"
+    TITLE_METADATA: typing.Final[str] = "title"
+    URL_METADATA: typing.Final[str] = "url"
 
     def __init__(self, html, path, title, url):
         super().__init__(None)
@@ -62,8 +60,8 @@ class DatapointBSHTMLLoader(BSHTMLLoader):
         self.url = url
 
     def lazy_load(self):
-        text = self.html.get_text(self.get_text_separator).split('\n')
-        text = '\n'.join(filter(lambda x: x.strip() != '', text))
+        text = self.html.get_text(self.get_text_separator).split("\n")
+        text = "\n".join(filter(lambda x: x.strip() != "", text))
 
         metadata = {
             DatapointBSHTMLLoader.SOURCE_METADATA: self.path,
@@ -94,8 +92,8 @@ class TqdmFileWrapper:
 
 
 class Data:
-    XLSX_PATH: typing.Final[str] = 'data/st-gallen-data.xlsx'
-    PICKLE_PATH: typing.Final[str] = 'data/data.pickle'
+    XLSX_PATH: typing.Final[str] = "data/st-gallen-data.xlsx"
+    PICKLE_PATH: typing.Final[str] = "data/data.pickle"
 
     def __init__(self, path):
         self.raw_data = pandas.read_excel(path, sheet_name=None)
@@ -109,8 +107,8 @@ class Data:
     @staticmethod
     def _download_pdf(url):
         url = url if url.startswith(URL_1) else URL_1 + url
-        filename = url.split('/')[-1]
-        directory = 'data/pdf/'
+        filename = url.split("/")[-1]
+        directory = "data/pdf/"
 
         pdf_filepath = directory + filename
         if os.path.exists(pdf_filepath):
@@ -120,19 +118,19 @@ class Data:
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        with open(pdf_filepath, 'wb') as output_file:
+        with open(pdf_filepath, "wb") as output_file:
             output_file.write(response.content)
 
     @staticmethod
     def _soup_to_vitals(soup) -> tuple[str, bs4.BeautifulSoup]:
         if soup.title is not None:
             title = soup.title.string
-            title = string_clean(title.split(' | ')[0])
+            title = string_clean(title.split(" | ")[0])
 
         else:
-            title = ''
+            title = ""
 
-        decompositions = ['head', 'header', 'style', 'nav', 'script']
+        decompositions = ["head", "header", "style", "nav", "script"]
         for tag_name in decompositions:
             if getattr(soup, tag_name) is None:
                 continue
@@ -140,42 +138,41 @@ class Data:
             for tag in soup.find_all(tag_name):
                 tag.decompose()
 
-        desktop_menu_column = soup.find('div', class_='desktop-menu-column')
+        desktop_menu_column = soup.find("div", class_="desktop-menu-column")
         if desktop_menu_column is not None:
             desktop_menu_column.decompose()
 
-        rsimg = soup.find('span', class_='rsimg')
+        rsimg = soup.find("span", class_="rsimg")
         if rsimg is not None:
             rsimg.decompose()
 
-        headerprint = soup.find('div', id='headerprint')
+        headerprint = soup.find("div", id="headerprint")
         if headerprint is not None:
             headerprint.decompose()
 
-        accesskeys = soup.find('div', id='accesskeys')
+        accesskeys = soup.find("div", id="accesskeys")
         if accesskeys is not None:
             accesskeys.decompose()
 
-        cpr = soup.find('span', class_='copyright')
+        cpr = soup.find("span", class_="copyright")
         if cpr is not None:
             cpr.decompose()
 
-        footer = soup.find('section', class_='footer')
+        footer = soup.find("section", class_="footer")
         if footer is not None:
             footer.decompose()
 
         for tag in soup.find_all(True):
-            if tag.string is None or tag.name == 'li':
+            if tag.string is None or tag.name == "li":
                 continue
 
-            if tag.name == 'a':
-                href = tag.get('href')
-                if href is not None and href.endswith('.pdf'):
+            if tag.name == "a":
+                href = tag.get("href")
+                if href is not None and href.endswith(".pdf"):
                     Data._download_pdf(href)
 
-
         cleaned_string = string_clean(str(soup))
-        return title, bs4.BeautifulSoup(cleaned_string, 'html.parser')
+        return title, bs4.BeautifulSoup(cleaned_string, "html.parser")
 
     def load_from_raw(self):
         rows = self.raw_data[self.data_key].iterrows()
@@ -183,22 +180,22 @@ class Data:
 
             # You fucked up St. Gallen
             if i == 3551:
-                row[SOURCE_HEADER] = row[SOURCE_HEADER].replace(URL_2, '')
-                row[PATH_HEADER] = row[PATH_HEADER].replace(URL_2, '')
-                row[PATH_HEADER] = row[PATH_HEADER].replace(URL_1, '')
+                row[SOURCE_HEADER] = row[SOURCE_HEADER].replace(URL_2, "")
+                row[PATH_HEADER] = row[PATH_HEADER].replace(URL_2, "")
+                row[PATH_HEADER] = row[PATH_HEADER].replace(URL_1, "")
 
-            filepath = f'{row[PATH_HEADER]}/data'
-            with open(f'data/{filepath}.html', 'r') as html_file:
-                html = bs4.BeautifulSoup(html_file, 'html.parser')
+            filepath = f"{row[PATH_HEADER]}/data"
+            with open(f"data/{filepath}.html", "r") as html_file:
+                html = bs4.BeautifulSoup(html_file, "html.parser")
                 title, soup = self._soup_to_vitals(html)
                 src = row[SOURCE_HEADER]
                 datapoint = DatapointBSHTMLLoader(soup, filepath, title, src)
-                set_nested_value(self.data, filepath.split('/'), datapoint)
+                set_nested_value(self.data, filepath.split("/"), datapoint)
 
     def load_from_pickle(self, file_path=PICKLE_PATH):
         file_size = os.path.getsize(file_path)
         with (
-            open(file_path, 'rb') as f,
+            open(file_path, "rb") as f,
             tqdm.tqdm(total=file_size, unit_scale=True) as pbar,
         ):
 
@@ -206,7 +203,7 @@ class Data:
             self.data = pickle.load(wrapped_file)
 
     def export_data(self):
-        with open(Data.PICKLE_PATH, 'wb') as f:
+        with open(Data.PICKLE_PATH, "wb") as f:
             pickle.dump(self.data, f)
 
     def yield_datapoints(self, data=None):

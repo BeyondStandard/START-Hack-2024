@@ -4,7 +4,6 @@ from datetime import datetime
 from pydub import AudioSegment, playback
 
 import subprocess
-import datetime
 import requests
 import whisper
 import dotenv
@@ -16,13 +15,15 @@ import os
 
 dotenv.load_dotenv()
 
-client = ElevenLabs(api_key=os.environ['ELEVENLABS_KEY'])
+client = ElevenLabs(api_key=os.environ["ELEVENLABS_KEY"])
 PLAYHT_UID = os.getenv("PLAYHT_UID")
 PLAYHT_KEY = os.getenv("PLAYHT_KEY")
 
 
 def do_sentiment_analysis(text):
-    subprocess.Popen(["python", os.path.join("backend", "sentiment-analysis-request.py"), text])
+    subprocess.Popen(
+        ["python", os.path.join("backend", "sentiment-analysis-request.py"), text]
+    )
 
 
 def do_speech_to_text(file_path):
@@ -31,7 +32,7 @@ def do_speech_to_text(file_path):
     # print(sys.argv)
     # file_path = sys.argv[1]  # "recorded.mp3"
 
-    start = datetime.datetime.now()
+    start = datetime.now()
     audio = whisper.load_audio(file_path)
     model = whisper.load_model("base")
 
@@ -54,8 +55,7 @@ def do_speech_to_text(file_path):
     # print the recognized text and language
     # print(result["text"])
     # print(det_lang)
-    speech_to_text = datetime.datetime.now() - start
-    time_stamp_1 = datetime.datetime.now()
+    speech_to_text = datetime.now() - start
     print("Speech to text: " + str(speech_to_text))
     print_response_time = True
 
@@ -66,7 +66,7 @@ def do_speech_to_text(file_path):
     )
 
     # Time when the request was sent (for measuring GPT response time)
-    time_stamp_request_sent = datetime.datetime.now()
+    time_stamp_request_sent = datetime.now()
 
     for line in response.iter_lines():
         if line:
@@ -76,49 +76,48 @@ def do_speech_to_text(file_path):
 
             # If this is the first line, print the time taken by GPT to respond
             if print_response_time:
-                time_stamp_first_response = datetime.datetime.now()
+                time_stamp_first_response = datetime.now()
                 gpt_response_time = time_stamp_first_response - time_stamp_request_sent
                 print("Time for first GPT response: " + str(gpt_response_time))
                 print_response_time = False
 
             # Time when text-to-speech starts (for measuring text-to-speech time)
-            time_stamp_text_to_speech_start = datetime.datetime.now()
+            time_stamp_text_to_speech_start = datetime.now()
 
-            if os.environ['swissVoice'] == "false":
+            if os.environ["swissVoice"] == "false":
                 audio = client.generate(
                     text=sentence,
-                    voice=os.environ['voice'],
-                    model="eleven_multilingual_v1")
+                    voice=os.environ["voice"],
+                    model="eleven_multilingual_v1",
+                )
             else:
                 audio = tts_swiss(sentence)
+                # TODO: 'tts_swiss' doesn't return anything
 
             # Calculate the time taken for text-to-speech conversion
-            text_to_speech_time = datetime.datetime.now() - time_stamp_text_to_speech_start
+            text_to_speech_time = datetime.now() - time_stamp_text_to_speech_start
             print("Text-to-Speech time: " + str(text_to_speech_time))
 
             # Play the audio or process it as needed
             print("Playing audio")
             play(audio)
             print("Audio played")
-            os.system('python STT/record_voice.py')
+            os.system("python STT/record_voice.py")
 
     # print("Time elapsed for generating:", end - start)
     # print("Text to speech: "+str(text_to_speech))
 
 
 def tts_swiss(text):
-    start_time = datetime.datetime.now()
+    start_time = datetime.now()
     url = "https://api.play.ht/api/v1/convert"
 
-    payload = {
-        "content": [text],
-        "voice": "de-CH-LeniNeural"
-    }
+    payload = {"content": [text], "voice": "de-CH-LeniNeural"}
     headers = {
         "accept": "application/json",
         "content-type": "application/json",
         "AUTHORIZATION": PLAYHT_KEY,
-        "X-USER-ID": PLAYHT_UID
+        "X-USER-ID": PLAYHT_UID,
     }
 
     response = requests.post(url, json=payload, headers=headers)
@@ -126,7 +125,10 @@ def tts_swiss(text):
     print(response.text)
     print(json.loads(response.text))
 
-    url = "https://api.play.ht/api/v1/articleStatus?transcriptionId=" + json.loads(response.text)["transcriptionId"]
+    url = (
+        "https://api.play.ht/api/v1/articleStatus?transcriptionId="
+        + json.loads(response.text)["transcriptionId"]
+    )
 
     converted = False
     while not converted:
