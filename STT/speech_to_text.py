@@ -86,7 +86,7 @@ def do_speech_to_text(file_path):
             time_stamp_text_to_speech_start = datetime.now()
 
             # Perform text-to-speech on the sentence
-            v = os.environ('voice')
+            v = os.environ.get('voice')
             v = v if v else "Chris"
             if not SWISS_VOICE:
                 audio = client.generate(

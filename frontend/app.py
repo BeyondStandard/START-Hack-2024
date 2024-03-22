@@ -1,3 +1,5 @@
+import time
+
 import streamlit as st
 import os
 
@@ -46,7 +48,7 @@ st.markdown("""
         background-color: #4CAF50;
         color: white;
         padding: 14px 20px;
-        margin: 8px 0;
+        margin: 20px 0;
         border: none;
         cursor: pointer;
         width: 30%;
@@ -54,8 +56,8 @@ st.markdown("""
       .stButton>button:hover {
         color: white;
       }
-      .spinner {
-        left: 35%;
+      .stSpinner {
+        left: 42%;
         position: absolute;
       }
     </style>
@@ -86,4 +88,6 @@ st.markdown("""
 
 with st.spinner('Listening...'):
     if st.button('Call', key='btn'):
+        #time.sleep(1000)
         os.system('python STT/record_voice.py')
+
