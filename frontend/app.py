@@ -41,6 +41,7 @@ st.markdown("""
       .phone-number {
         font-size: 26px;
         margin-bottom: 4%;
+        color: white;
       }
       .stButton>button {
         left: 35%;
