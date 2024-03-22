@@ -168,5 +168,65 @@
         "emotion": "frustration",
         "sentiment": "negative",
         "timestamp": "2024-03-22T05:32:31Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T05:37:30Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T05:37:47Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "indifferent",
+        "timestamp": "2024-03-22T05:40:45Z"
+    },
+    {
+        "emotion": "content",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T05:42:10Z"
+    },
+    {
+        "sentiment": "positive",
+        "emotion": "gratitude",
+        "timestamp": "2024-03-22T05:42:23Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "none",
+        "timestamp": "2024-03-22T05:42:38Z"
+    },
+    {
+        "sentiment": "positive",
+        "emotion": "gratitude",
+        "timestamp": "2024-03-22T05:42:47Z"
+    },
+    {
+        "emotion": "satisfaction",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T05:42:59Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T05:43:13Z"
+    },
+    {
+        "emotion": "gratitude",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T05:43:26Z"
+    },
+    {
+        "sentiment": "positive",
+        "emotion": "gratitude",
+        "timestamp": "2024-03-22T05:43:39Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "confusion",
+        "timestamp": "2024-03-22T05:43:51Z"
     }
 ]
