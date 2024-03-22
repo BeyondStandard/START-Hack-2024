@@ -1,9 +1,9 @@
 from elevenlabs.client import ElevenLabs
 from elevenlabs import play
-from pydub import AudioSegment
+from datetime import datetime
+from pydub import AudioSegment, playback
 
 import subprocess
-import datetime
 import requests
 import whisper
 import dotenv
@@ -16,10 +16,10 @@ import os
 dotenv.load_dotenv()
 
 client = ElevenLabs(api_key=os.environ['ELEVENLABS_KEY'])
-PLAYHT_UID=os.getenv("PLAYHT_UID"),
+PLAYHT_UID=os.getenv("PLAYHT_UID")
 PLAYHT_KEY=os.getenv("PLAYHT_KEY")
 
-SWISS_VOICE = False
+SWISS_VOICE = True
 
 def do_sentiment_analysis(text):
     subprocess.Popen(["python", os.path.join("backend", "sentiment-analysis-request.py"), text])
@@ -31,7 +31,7 @@ def do_speech_to_text(file_path):
     # print(sys.argv)
     # file_path = sys.argv[1]  # "recorded.mp3"
 
-    start = datetime.datetime.now()
+    start = datetime.now()
     audio = whisper.load_audio(file_path)
     model = whisper.load_model("base")
 
@@ -54,8 +54,8 @@ def do_speech_to_text(file_path):
     # print the recognized text and language
     # print(result["text"])
     # print(det_lang)
-    speech_to_text = datetime.datetime.now() - start
-    time_stamp_1 = datetime.datetime.now()
+    speech_to_text = datetime.now() - start
+    time_stamp_1 = datetime.now()
     print("Speech to text: " + str(speech_to_text))
     print_response_time = True
 
@@ -66,7 +66,7 @@ def do_speech_to_text(file_path):
     )
 
     # Time when the request was sent (for measuring GPT response time)
-    time_stamp_request_sent = datetime.datetime.now()
+    time_stamp_request_sent = datetime.now()
 
     for line in response.iter_lines():
         if line:
@@ -76,30 +76,31 @@ def do_speech_to_text(file_path):
 
             # If this is the first line, print the time taken by GPT to respond
             if print_response_time:
-                time_stamp_first_response = datetime.datetime.now()
+                time_stamp_first_response = datetime.now()
                 gpt_response_time = time_stamp_first_response - time_stamp_request_sent
                 print("Time for first GPT response: " + str(gpt_response_time))
                 print_response_time = False
 
             # Time when text-to-speech starts (for measuring text-to-speech time)
-            time_stamp_text_to_speech_start = datetime.datetime.now()
+            time_stamp_text_to_speech_start = datetime.now()
 
             if not SWISS_VOICE:
                 audio = client.generate(
                     text=sentence,
                     voice=os.environ['voice'],
                     model="eleven_multilingual_v1")
+                # Calculate the time taken for text-to-speech conversion
+                text_to_speech_time = datetime.now() - time_stamp_text_to_speech_start
+                print("Text-to-Speech time: " + str(text_to_speech_time))
+
+                # Play the audio or process it as needed
+                print("Playing audio")
+                play(audio)
+                print("Audio played")
             else:
                 audio = tts_swiss(sentence)
 
-            # Calculate the time taken for text-to-speech conversion
-            text_to_speech_time = datetime.datetime.now() - time_stamp_text_to_speech_start
-            print("Text-to-Speech time: " + str(text_to_speech_time))
 
-            # Play the audio or process it as needed
-            print("Playing audio")
-            play(audio)
-            print("Audio played")
             os.system('python STT/record_voice.py')
 
     # print("Time elapsed for generating:", end - start)
@@ -107,7 +108,7 @@ def do_speech_to_text(file_path):
 
 
 def tts_swiss(text):
-    start_time = datetime.datetime.now()
+    start_time = datetime.now()
     url = "https://api.play.ht/api/v1/convert"
 
     payload = {
@@ -145,8 +146,8 @@ def tts_swiss(text):
     audio = AudioSegment.from_file(audio_data, format="mp3")
 
     # Play the audio file
-    print("Time elapsed for generating:", datetime.datetime.now() - start_time)
-    return audio
+    print("Time elapsed for generating:", datetime.now() - start_time)
+    playback.play(audio)
 
 
 if __name__ == "__main__":

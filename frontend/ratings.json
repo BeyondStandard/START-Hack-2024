@@ -318,5 +318,60 @@
         "emotion": "joy",
         "sentiment": "positive",
         "timestamp": "2024-03-22T07:09:21Z"
+    },
+    {
+        "emotion": "friendly",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T07:10:44Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "neutral",
+        "timestamp": "2024-03-22T07:11:10Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "frustration",
+        "timestamp": "2024-03-22T07:11:31Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "anger",
+        "timestamp": "2024-03-22T07:12:03Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "",
+        "timestamp": "2024-03-22T07:13:56Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "anger",
+        "timestamp": "2024-03-22T07:14:12Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T07:16:36Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T07:17:15Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T07:17:48Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T07:21:12Z"
+    },
+    {
+        "emotion": "gratitude",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T07:21:28Z"
     }
 ]
