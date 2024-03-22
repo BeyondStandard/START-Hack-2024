@@ -24,17 +24,12 @@ async def main():
 
 
 async def record(q):
-    start_timer = 1
     pause_timer = 1
     while not stop_event.is_set():
         chunk = await q.get()
         vol = max(chunk)
         if vol >= MIN_VOLUME:
             print("0")
-            start_timer = start_timer+1
-            if start_timer>=5:
-                wf.writeframes
-            pause_timer = 1
         else:
             print("-")
             pause_timer = pause_timer + 1
@@ -44,8 +39,6 @@ async def record(q):
                 print("Finished Recording")
                 os.system('python backend/speech_to_text.py ' + str(current_time) + '.mp3')
                 stop_event.set()
-                #os.system('python backend/speech_to_text.py '+str(current_time)+'.mp3')
-                #stop_event.set()
 
 
 async def listen(q):

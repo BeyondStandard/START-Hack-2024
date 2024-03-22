@@ -160,7 +160,7 @@ async def main(message: datamodel.ChatMessage):
 
     prediction = json.loads(response.choices[0].message.content.lower())
     prediction["timestamp"] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-    json_path = os.path.join("streamlit_app", "ratings.json")
+    json_path = os.path.join("frontend", "ratings.json")
     with open(json_path, 'r') as f:
         data = json.load(f)
         data.append(prediction)

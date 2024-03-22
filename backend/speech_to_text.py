@@ -9,6 +9,7 @@ from elevenlabs.client import ElevenLabs
 
 import sys
 
+client = ElevenLabs(api_key=os.environ['ELEVENLABS_API_KEY'])
 
 def do_sentiment_analysis(text):
     subprocess.Popen(["python", os.path.join("backend", "sentiment-analysis-request.py"), text])
@@ -47,11 +48,6 @@ def do_speech_to_text(file_path):
     speech_to_text = datetime.now() - start
     time_stamp_1 = datetime.now()
     print("Speech to text: " + str(speech_to_text))
-
-    client = ElevenLabs(
-        api_key="41f1d61b1ce48269216086555aa78d33",
-    )
-
     print_response_time = True
 
     response = requests.post(
