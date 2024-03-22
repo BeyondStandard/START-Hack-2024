@@ -106,12 +106,12 @@ commands:
                 exec: |
                     source .venv/bin/activate
                     uvicorn backend.app:app --reload --port 8000
-                commands:
-                    windows:
-                        help: setup for windows
-                        exec: |
-                            conda activate st_gallen_env
-                            uvicorn backend.app:app --reload --port 8000
+
+            frontend:
+                help: launch the frontend
+                exec: |
+                    source .venv/bin/activate
+                    streamlit run frontend/app.py
 
             tts:
                 help: launch the text-to-speech

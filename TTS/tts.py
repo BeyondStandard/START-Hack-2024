@@ -27,8 +27,6 @@ dotenv.load_dotenv()
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 ELEVENLABS_API_KEY = os.environ["ELEVENLABS_KEY"]
 VOICE_ID = voices.VOICE_IDS[os.environ["voice"]]
-PLAYHT_KEY = os.getenv("PLAYHT_KEY")
-PLAYHT_UID = os.getenv("PLAYHT_UID")
 
 text_to_speech_start_time = None
 gpt_start_time = None

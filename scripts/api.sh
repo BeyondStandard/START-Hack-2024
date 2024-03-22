@@ -21,10 +21,6 @@ if [ ! -f "$ENV_FILE" ]; then
     read -rp "Enter your PlayHT API Key: " user_input
     echo "PLAYHT_KEY=\"$user_input\"" >> "$ENV_FILE"
 
-
-
-
-
     echo "Your API key has been saved to $ENV_FILE."
 else
     echo "$ENV_FILE already exists."
