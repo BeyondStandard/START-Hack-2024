@@ -2,18 +2,30 @@ import time
 import pandas as pd
 import streamlit as st
 import os
+import streamlit.components.v1 as components
 
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "page_1"
+
+# Create a wrapper for the custom component
+audio_recorder = components.declare_component("audio_recorder", path="my_audio_recorder/frontend")
+
+# Call the component, passing the key as an argument to the returned function
+audio_data = audio_recorder(key="recorder")
+
+if audio_data is not None:
+    st.audio(audio_data)
+
+
+
+if 'current_page' not in st.session_state:
+    st.session_state.current_page = 'page_1'
 
 
 def navigate_to_page(page_name):
     st.session_state.current_page = page_name
 
 
-if st.session_state.current_page == "page_1":
-    st.markdown(
-        """
+if st.session_state.current_page == 'page_1':
+    st.markdown("""
         <style>
         .appview-container {
             background-image: url("https://cdn.discordapp.com/attachments/663083712619216897/1220566048215142501/Frame_1_2.png?ex=660f67b6&is=65fcf2b6&hm=aef67506fbc07d7366db7687be411c0ef87a3751dd4db498b25bcdc60b8923d8&");
@@ -105,7 +117,7 @@ if st.session_state.current_page == "page_1":
             os.system("python STT/record_voice.py")
 
         with st.sidebar:
-            ratings_path = os.path.join("frontend", "ratings.json")
+            ratings_path = os.path.join('ratings.json')
             df = pd.read_json(ratings_path)
             df["sentiment"] = df["sentiment"].astype("category")
             df["emotion"] = df["emotion"].astype("category")

@@ -373,5 +373,100 @@
         "emotion": "gratitude",
         "sentiment": "positive",
         "timestamp": "2024-03-22T07:21:28Z"
+    },
+    {
+        "emotion": "anxiety",
+        "sentiment": "negative",
+        "timestamp": "2024-03-22T07:44:02Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "sadness",
+        "timestamp": "2024-03-22T07:48:49Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "none",
+        "timestamp": "2024-03-22T07:52:07Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "frustration",
+        "timestamp": "2024-03-22T07:53:00Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "disappointment",
+        "timestamp": "2024-03-22T07:55:27Z"
+    },
+    {
+        "emotion": "sadness",
+        "sentiment": "negative",
+        "timestamp": "2024-03-22T07:57:07Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "negative",
+        "timestamp": "2024-03-22T08:00:10Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "confusion",
+        "timestamp": "2024-03-22T08:01:47Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "disappointment",
+        "timestamp": "2024-03-22T08:04:35Z"
+    },
+    {
+        "emotion": "gratitude",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T08:06:04Z"
+    },
+    {
+        "sentiment": "positive",
+        "emotion": "gratitude",
+        "timestamp": "2024-03-22T08:11:10Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "confusion",
+        "timestamp": "2024-03-22T08:11:28Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T08:11:42Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "concerned",
+        "timestamp": "2024-03-22T08:13:02Z"
+    },
+    {
+        "sentiment": "positive",
+        "emotion": "gratitude",
+        "timestamp": "2024-03-22T08:13:37Z"
+    },
+    {
+        "emotion": "confusion",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T08:17:43Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "apologetic",
+        "timestamp": "2024-03-22T08:18:58Z"
+    },
+    {
+        "emotion": "gratitude",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T09:34:37Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "none",
+        "timestamp": "2024-03-22T09:35:00Z"
     }
 ]

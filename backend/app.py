@@ -79,7 +79,7 @@ class GPTChatter:
             persist_directory="data/vectordb",
             embedding_function=OpenAIEmbeddings(model=os.environ["embeddingModel"]),
         )
-        r = vectordb.as_retriever(search_kwargs={"k": 10})
+        r = vectordb.as_retriever(search_kwargs={'k': 5})
         self.qa_chain = RetrievalQA.from_chain_type(
             llm=OpenAI(
                 streaming=True,
