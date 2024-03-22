@@ -1,9 +1,9 @@
 from elevenlabs.client import ElevenLabs
 from elevenlabs import play
-from datetime import datetime
 from pydub import AudioSegment
 
 import subprocess
+import datetime
 import requests
 import whisper
 import dotenv
@@ -31,7 +31,7 @@ def do_speech_to_text(file_path):
     # print(sys.argv)
     # file_path = sys.argv[1]  # "recorded.mp3"
 
-    start = datetime.now()
+    start = datetime.datetime.now()
     audio = whisper.load_audio(file_path)
     model = whisper.load_model("base")
 
@@ -54,8 +54,8 @@ def do_speech_to_text(file_path):
     # print the recognized text and language
     # print(result["text"])
     # print(det_lang)
-    speech_to_text = datetime.now() - start
-    time_stamp_1 = datetime.now()
+    speech_to_text = datetime.datetime.now() - start
+    time_stamp_1 = datetime.datetime.now()
     print("Speech to text: " + str(speech_to_text))
     print_response_time = True
 
@@ -66,7 +66,7 @@ def do_speech_to_text(file_path):
     )
 
     # Time when the request was sent (for measuring GPT response time)
-    time_stamp_request_sent = datetime.now()
+    time_stamp_request_sent = datetime.datetime.now()
 
     for line in response.iter_lines():
         if line:
@@ -76,13 +76,13 @@ def do_speech_to_text(file_path):
 
             # If this is the first line, print the time taken by GPT to respond
             if print_response_time:
-                time_stamp_first_response = datetime.now()
+                time_stamp_first_response = datetime.datetime.now()
                 gpt_response_time = time_stamp_first_response - time_stamp_request_sent
                 print("Time for first GPT response: " + str(gpt_response_time))
                 print_response_time = False
 
             # Time when text-to-speech starts (for measuring text-to-speech time)
-            time_stamp_text_to_speech_start = datetime.now()
+            time_stamp_text_to_speech_start = datetime.datetime.now()
 
             if not SWISS_VOICE:
                 audio = client.generate(
@@ -93,7 +93,7 @@ def do_speech_to_text(file_path):
                 audio = tts_swiss(sentence)
 
             # Calculate the time taken for text-to-speech conversion
-            text_to_speech_time = datetime.now() - time_stamp_text_to_speech_start
+            text_to_speech_time = datetime.datetime.now() - time_stamp_text_to_speech_start
             print("Text-to-Speech time: " + str(text_to_speech_time))
 
             # Play the audio or process it as needed
