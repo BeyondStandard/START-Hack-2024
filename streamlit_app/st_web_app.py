@@ -11,17 +11,18 @@ st.image(os.path.join('pics', 'hack.png'))
 st.image(os.path.join('pics', 'st_gallen.jpg'))
 
 # Launch Button
-col1, col2, col3 = st.columns([1.5, 1, 1])
+col1, col2, col3 = st.columns([2, 3, 1])
 
 # img = Image.open("images/top_spiderman.png")
 # st.button(st.image(img))
 
-if col2.button('Ask a question!'):
-    col2.write("Listening...")
+if col1.button('Ask a question!'):
+    col1.write("Listening...")
     os.system('python record_voice.py')
 
 if col3.button('View history'):
     df = pd.read_json("streamlit_app/ratings.json")
     df["sentiment"] = df["sentiment"].astype("category")
     df["emotion"] = df["emotion"].astype("category")
-    st.bar_chart(df, x="timestamp", y="emotion", color="sentiment")
+    df = df.rename(columns={"timestamp": "Timestamp", "emotion": "Emotion", "sentiment":"Sentiment"})
+    st.bar_chart(df, x="Timestamp", y="Emotion", color="Sentiment")
