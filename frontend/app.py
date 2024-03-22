@@ -86,4 +86,4 @@ st.markdown("""
 
 with st.spinner('Listening...'):
     if st.button('Call', key='btn'):
-        os.system('python record_voice.py')
+        os.system('python STT/record_voice.py')
