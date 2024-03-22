@@ -1,14 +1,31 @@
 import React, {useState, useEffect} from 'react';
 import './App.css';
-import AudioRecorder from "./AudioRecorder";
 
 function App() {
-  const [predictions, setPredictions]: Object<string, number> = useState(
-    {
-      "positive": 16,
-      "negative": 2,
-      "neutral": 3,
-    }
+  const [predictions, setPredictions]: Array<Object<string, string>> = useState(
+    [
+      {"sentiment": "positive", "emotion": "grateful"},
+      {"sentiment": "positive", "emotion": "happy"},
+      {"sentiment": "positive", "emotion": "grateful"},
+      {"sentiment": "positive", "emotion": "grateful"},
+      {"sentiment": "positive", "emotion": "neutral"},
+      {"sentiment": "positive", "emotion": "happy"},
+      {"sentiment": "positive", "emotion": "neutral"},
+      {"sentiment": "positive", "emotion": "relieved"},
+      {"sentiment": "positive", "emotion": "relieved"},
+      {"sentiment": "positive", "emotion": "neutral"},
+      {"sentiment": "positive", "emotion": "neutral"},
+      {"sentiment": "positive", "emotion": "neutral"},
+      {"sentiment": "positive", "emotion": "grateful"},
+      {"sentiment": "positive", "emotion": "neutral"},
+      {"sentiment": "positive", "emotion": "neutral"},
+      {"sentiment": "positive", "emotion": "happy"},
+      {"sentiment": "negative", "emotion": "annoyed"},
+      {"sentiment": "negative", "emotion": "angry"},
+      {"sentiment": "neutral", "emotion": "neutral"},
+      {"sentiment": "neutral", "emotion": "neutral"},
+      {"sentiment": "neutral", "emotion": "neutral"},
+    ]
   );
   const [total, setTotal]: number = useState(21)
   const [score, setScore]: number = useState(83.3)
@@ -23,23 +40,21 @@ function App() {
       console.log(newPrediction);
       setTotal(total + 1)
 
-      switch (newPrediction) {
-        case "positive":
-          setPredictions({...predictions, positive: predictions.positive + 1})
-          break;
-        case "negative":
-          setPredictions({...predictions, negative: predictions.negative + 1})
-          break;
-        case "neutral":
-          setPredictions({...predictions, neutral: predictions.neutral + 1})
-          break;
-        default:
-          console.log(newPrediction);
-      }
-      setPredictions(predictions => [...predictions, newPrediction.value]);
+      setPredictions(predictions => [...predictions, newPrediction]);
+      console.log(predictions)
       setLastScore(score);
-      setScore((predictions.positive * 100 + predictions.neutral * 50) / total)
+      setScore(predictions.reduce((score, sentiment) => {
+        if (sentiment.sentiment === "positive") {
+          score += 100;
+        } else if (sentiment.sentiment === "negative") {
+          score += 0;
+        } else if (sentiment.sentiment === "neutral") {
+          score += 50;
+        }
+        return score;
+      }, 0) / total);
     };
+    console.log(score)
 
     return () => {
       if (socket.readyState === 1) {
@@ -48,17 +63,26 @@ function App() {
     };
   }, []);
 
-  console.log(score)
-  console.log(lastScore)
   return (
-    <div className={`bar-wrapper ${score > lastScore ? 'greenFade' :  score < lastScore ? 'redFade' : null}`}>
+    <div className={`bar-wrapper ${score > lastScore ? 'greenFade' : score < lastScore ? 'redFade' : null}`}>
       {score}
       <div className="bar-border">
-        <div style={{width: `${(predictions.positive / total) * 100}%`, backgroundColor: '#68e86d'}}></div>
-        <div style={{width: `${(predictions.neutral / total) * 100}%`, backgroundColor: '#dedede'}}></div>
-        <div style={{width: `${(predictions.negative / total) * 100}%`, backgroundColor: '#ed8e8e'}}></div>
+        <div style={{
+          width: `${(predictions.reduce((count, emotionObject) => {
+            return emotionObject.sentiment === 'positive' ? count + 1 : count;
+          }, 0) / total) * 100}%`, backgroundColor: '#68e86d'
+        }}></div>
+        <div style={{
+          width: `${(predictions.reduce((count, emotionObject) => {
+            return emotionObject.sentiment === 'neutral' ? count + 1 : count;
+          }, 0) / total) * 100}%`, backgroundColor: '#dedede'
+        }}></div>
+        <div style={{
+          width: `${(predictions.reduce((count, emotionObject) => {
+            return emotionObject.sentiment === 'negative' ? count + 1 : count;
+          }, 0) / total) * 100}%`, backgroundColor: '#ed8e8e'
+        }}></div>
       </div>
-      <AudioRecorder/>
     </div>
   )
 }
