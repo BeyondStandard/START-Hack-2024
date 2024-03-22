@@ -1,16 +1,19 @@
-import os
-import subprocess
-from datetime import datetime
-
-import io
-import json
-import requests
-from pydub import AudioSegment
-import whisper
-from elevenlabs import play
 from elevenlabs.client import ElevenLabs
+from elevenlabs import play
+from datetime import datetime
+from pydub import AudioSegment
 
+import subprocess
+import requests
+import whisper
+import dotenv
+import json
 import sys
+import io
+import os
+
+
+dotenv.load_dotenv()
 
 client = ElevenLabs(api_key=os.environ['ELEVENLABS_KEY'])
 PLAYHT_UID=os.getenv("PLAYHT_UID"),
@@ -83,7 +86,8 @@ def do_speech_to_text(file_path):
             time_stamp_text_to_speech_start = datetime.now()
 
             # Perform text-to-speech on the sentence
-
+            v = os.environ('voice')
+            v = v if v else "Chris"
             if not SWISS_VOICE:
                 audio = client.generate(
                     text=sentence, voice="Chris", model="eleven_multilingual_v1"
