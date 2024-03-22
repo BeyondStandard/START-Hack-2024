@@ -84,7 +84,7 @@ def do_speech_to_text(file_path):
             # Time when text-to-speech starts (for measuring text-to-speech time)
             time_stamp_text_to_speech_start = datetime.datetime.now()
 
-            if not os.environ['swissVoice']:
+            if os.environ['swissVoice'] == "false":
                 audio = client.generate(
                     text=sentence,
                     voice=os.environ['voice'],

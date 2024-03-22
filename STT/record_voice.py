@@ -59,14 +59,16 @@ async def record(q):
 
 
 async def listen(q):
+    global FIRST_TIME
+
     if FIRST_TIME:
-        if not os.environ['swissVoice']:
+        if os.environ['swissVoice'] == 'false':
             play_mp3('audio/hello_german.mp3')
-            first_time = False
+            FIRST_TIME = False
 
         else:
             play_mp3('audio/hello_swiss.mp3')
-            first_time = False
+            FIRST_TIME = False
 
     stream = pyaudio.PyAudio().open(
         format=pyaudio.paInt16,
