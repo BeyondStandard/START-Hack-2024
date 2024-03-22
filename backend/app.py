@@ -95,6 +95,14 @@ class GPTChatter:
     def _ask(self, message: str) -> dict[str, typing.Any]:
         return self.qa_chain.invoke({'query': message})
 
+    async def _response(self):
+        while not self.complete:
+            if token := self.callback.request_token():
+                yield token
+
+            else:
+                await asyncio.sleep(0)
+
     async def ask(self, message: str) -> dict[str, typing.Any]:
         self.complete = False
         loop = asyncio.get_running_loop()
@@ -104,13 +112,9 @@ class GPTChatter:
         self.complete = True
         return result
 
-    async def get_response(self):
-        while not self.complete:
-            if token := self.callback.request_token():
-                yield token
-
-            else:
-                await asyncio.sleep(0.1)
+    async def response(self):
+        async for item in self._response():
+            yield item
 
 
 chatter = GPTChatter()
@@ -119,9 +123,7 @@ chatter = GPTChatter()
 @app.post('/chat')
 async def main(message: datamodel.ChatMessage):
     _ = asyncio.create_task(chatter.ask(message.content))
-    resposne_stream = asyncio.create_task(chatter.get_response())
-
-    return StreamingResponse(resposne_stream, media_type='text/plain')
+    return StreamingResponse(chatter.response(), media_type='text/plain')
 
 
 """
