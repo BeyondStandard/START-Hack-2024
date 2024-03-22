@@ -9,7 +9,7 @@ from elevenlabs.client import ElevenLabs
 
 import sys
 
-client = ElevenLabs(api_key=os.environ['ELEVENLABS_API_KEY'])
+client = ElevenLabs(api_key=os.environ['ELEVENLABS_KEY'])
 
 def do_sentiment_analysis(text):
     subprocess.Popen(["python", os.path.join("backend", "sentiment-analysis-request.py"), text])

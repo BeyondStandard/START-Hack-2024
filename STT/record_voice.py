@@ -1,3 +1,4 @@
+import progressbar
 import datetime
 import asyncio
 import pyaudio
@@ -17,6 +18,16 @@ wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
 wf.setframerate(44100)
 
 
+# Create a progress bar widget
+bar = progressbar.ProgressBar(
+    max_value=50000, widgets=[
+        'Audio Level: ',
+        progressbar.Bar(marker='=', left='[', right=']'),
+        progressbar.Percentage()
+    ])
+
+
+
 async def main():
     listener_task = asyncio.create_task(listen(q))
     recorder_task = asyncio.create_task(record(q))
@@ -28,10 +39,8 @@ async def record(q):
     while not stop_event.is_set():
         chunk = await q.get()
         vol = max(chunk)
-        if vol >= MIN_VOLUME:
-            print("0")
-        else:
-            print("-")
+        bar.update(vol)
+        if vol < MIN_VOLUME:
             pause_timer = pause_timer + 1
             if pause_timer == 100:
                 print("break now")

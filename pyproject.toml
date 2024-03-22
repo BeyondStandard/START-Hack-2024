@@ -39,6 +39,7 @@ pyht = "^0.0.26"
 pydub = "^0.25.1"
 streamlit = "^1.32.2"
 pyaudio = "^0.2.14"
+progressbar2 = "^4.4.2"
 
 [tool.poetry.group.dev.dependencies]
 types-requests = "^2.31.0.20240311"
