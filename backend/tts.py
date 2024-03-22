@@ -102,8 +102,7 @@ def do_speech_to_text(file_path):
             # Play the audio or process it as needed
             print("Playing audio")
             play(audio)
-            print("Audio played")
-            os.system("python backend/stt.py")
+
 
     # print("Time elapsed for generating:", end - start)
     # print("Text to speech: "+str(text_to_speech))

@@ -1,5 +1,4 @@
-from pydub.playback import play
-from pydub import AudioSegment
+
 
 import progressbar
 import datetime
@@ -22,10 +21,6 @@ wf.setnchannels(1)
 wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
 wf.setframerate(44100)
 
-# Audio globals
-LANG = 'swiss' if os.environ['swissVoice'] == 'true' else 'german'
-FIRST_TIME = True
-
 # Create a progress bar widget
 bar = progressbar.ProgressBar(
     max_value=50000,
@@ -35,11 +30,6 @@ bar = progressbar.ProgressBar(
         progressbar.Percentage(),
     ],
 )
-
-
-def play_mp3(file_path):
-    audio = AudioSegment.from_mp3(file_path)
-    play(audio)
 
 
 async def main():
@@ -59,15 +49,10 @@ async def record(q):
             if pause_timer < 100:
                 continue
 
-            loop = asyncio.get_event_loop()
-            task = loop.run_in_executor(
-                None, play_mp3, f'audio/wait_{LANG}.mp3')
-
             print("break now")
             wf.close()
             print("Finished Recording")
             os.system(f"python backend/tts.py {str(current_time)}.mp3")
-            await task
             stop_event.set()
 
 
@@ -75,9 +60,7 @@ async def listen(q):
     global FIRST_TIME
     print("JIHOUGIFUDJHSFGHIJÖHULGKZJFHDGHJK")
     print(FIRST_TIME)
-    if FIRST_TIME:
-        FIRST_TIME = False
-        play_mp3(f'audio/hello_{LANG}.mp3')
+
     print(FIRST_TIME)
 
     stream = pyaudio.PyAudio().open(

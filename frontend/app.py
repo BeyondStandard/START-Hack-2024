@@ -1,3 +1,7 @@
+from pydub.playback import play
+from pydub import AudioSegment
+
+import asyncio
 import streamlit
 import requests
 import pandas
@@ -6,6 +10,16 @@ import os
 import streamlit.components.v1 as components
 from audio_recorder_streamlit import audio_recorder
 from datetime import datetime
+
+# Audio globals
+LANG = 'swiss' if os.environ['swissVoice'] == 'true' else 'german'
+FIRST_TIME = True
+
+
+def play_mp3(file_path):
+    audio = AudioSegment.from_mp3(file_path)
+    play(audio)
+
 
 
 if 'current_page' not in streamlit.session_state:
@@ -23,6 +37,9 @@ audio_bytes = audio_recorder(
 )
 
 if audio_bytes:
+    if FIRST_TIME:
+        FIRST_TIME = False
+        play_mp3(f'audio/hello_{LANG}.mp3')
     # Generate a filename based on the current timestamp
     current_time = datetime.utcnow().strftime("%Y_%m_%dT%H_%M_%SZ")
     filename = f"{current_time}.wav"
@@ -33,7 +50,11 @@ if audio_bytes:
 
     # You can now process this file with your backend logic
     # For example, call your existing Python script and pass the filename
+    loop = asyncio.get_event_loop()
+    task = loop.run_in_executor(
+        None, play_mp3, f'audio/wait_{LANG}.mp3')
     os.system(f"python backend/tts.py {str(current_time)}.wav")
+
 
 def navigate_to_page(page_name):
     streamlit.session_state.current_page = page_name
@@ -127,9 +148,6 @@ if streamlit.session_state.current_page == 'page_1':
     with streamlit.spinner("Listening..."):
         if streamlit.button("Call", key="btn"):
             navigate_to_page("page_2")
-
-
-
 
         with streamlit.sidebar:
             ratings_path = os.path.join('frontend', 'ratings.json')
