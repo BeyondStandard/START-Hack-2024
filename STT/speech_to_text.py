@@ -84,13 +84,11 @@ def do_speech_to_text(file_path):
             # Time when text-to-speech starts (for measuring text-to-speech time)
             time_stamp_text_to_speech_start = datetime.now()
 
-            # Perform text-to-speech on the sentence
-            v = os.environ['voice']
-            v = v if v else "Chris"
             if not SWISS_VOICE:
                 audio = client.generate(
-                    text=sentence, voice="Chris", model="eleven_multilingual_v1"
-                )
+                    text=sentence,
+                    voice=os.environ['voice'],
+                    model="eleven_multilingual_v1")
             else:
                 audio = tts_swiss(sentence)
 
