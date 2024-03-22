@@ -153,5 +153,20 @@
         "emotion": "gratitude",
         "sentiment": "positive",
         "timestamp": "2024-03-22T03:55:32Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T05:30:16Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T05:32:11Z"
+    },
+    {
+        "emotion": "frustration",
+        "sentiment": "negative",
+        "timestamp": "2024-03-22T05:32:31Z"
     }
 ]

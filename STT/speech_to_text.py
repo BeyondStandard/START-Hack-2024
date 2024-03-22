@@ -6,10 +6,9 @@ import requests
 import whisper
 from elevenlabs import play
 from elevenlabs.client import ElevenLabs
-
 import sys
 
-client = ElevenLabs(api_key=os.environ['ELEVENLABS_API_KEY'])
+client = ElevenLabs(api_key="41f1d61b1ce48269216086555aa78d33")
 
 def do_sentiment_analysis(text):
     subprocess.Popen(["python", os.path.join("backend", "sentiment-analysis-request.py"), text])
@@ -88,7 +87,7 @@ def do_speech_to_text(file_path):
             print("Playing audio")
             play(audio)
             print("Audio played")
-            os.system('python record_voice.py')
+            os.system('python STT/record_voice.py')
 
     # print("Time elapsed for generating:", end - start)
     # print("Text to speech: "+str(text_to_speech))
