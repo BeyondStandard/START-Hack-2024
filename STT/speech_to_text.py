@@ -99,7 +99,7 @@ def do_speech_to_text(file_path):
             print("Playing audio")
             play(audio)
             print("Audio played")
-            os.system('python record_voice.py')
+            os.system('python STT/record_voice.py')
 
     # print("Time elapsed for generating:", end - start)
     # print("Text to speech: "+str(text_to_speech))
