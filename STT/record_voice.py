@@ -13,7 +13,7 @@ q = asyncio.Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK_SIZE)))
 stop_event = asyncio.Event()
 current_time = datetime.datetime.utcnow().strftime('%Y_%m_%dT%H_%M_%SZ')
 wf = wave.open(current_time+'.mp3', "wb")
-wf.setnchannels(2)
+wf.setnchannels(1)
 wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
 wf.setframerate(44100)
 
@@ -53,7 +53,7 @@ async def record(q):
 async def listen(q):
     stream = pyaudio.PyAudio().open(
         format=pyaudio.paInt16,
-        channels=2,
+        channels=1,
         rate=44100,
         input=True,
         frames_per_buffer=1024,
