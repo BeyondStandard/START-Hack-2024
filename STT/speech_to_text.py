@@ -2,14 +2,21 @@ import os
 import subprocess
 from datetime import datetime
 
+import io
+import json
 import requests
+from pydub import AudioSegment
 import whisper
 from elevenlabs import play
 from elevenlabs.client import ElevenLabs
 
 import sys
 
-client = ElevenLabs(api_key=os.environ['ELEVENLABS_KEY'])
+client = ElevenLabs(api_key=os.environ['ELEVENLABS_API_KEY'])
+PLAYHT_UID=os.getenv("PLAYHT_UID"),
+PLAYHT_KEY=os.getenv("PLAYHT_KEY")
+
+SWISS_VOICE = False
 
 def do_sentiment_analysis(text):
     subprocess.Popen(["python", os.path.join("backend", "sentiment-analysis-request.py"), text])
@@ -76,9 +83,13 @@ def do_speech_to_text(file_path):
             time_stamp_text_to_speech_start = datetime.now()
 
             # Perform text-to-speech on the sentence
-            audio = client.generate(
-                text=sentence, voice="Chris", model="eleven_multilingual_v1"
-            )
+
+            if not SWISS_VOICE:
+                audio = client.generate(
+                    text=sentence, voice="Chris", model="eleven_multilingual_v1"
+                )
+            else:
+                audio = tts_swiss(sentence)
 
             # Calculate the time taken for text-to-speech conversion
             text_to_speech_time = datetime.now() - time_stamp_text_to_speech_start
@@ -88,10 +99,53 @@ def do_speech_to_text(file_path):
             print("Playing audio")
             play(audio)
             print("Audio played")
-            os.system('python STT/record_voice.py')
+            os.system('python record_voice.py')
 
     # print("Time elapsed for generating:", end - start)
     # print("Text to speech: "+str(text_to_speech))
+
+
+def tts_swiss(text):
+    start_time = datetime.datetime.now()
+    url = "https://api.play.ht/api/v1/convert"
+
+    payload = {
+        "content": [text],
+        "voice": "de-CH-LeniNeural"
+    }
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "AUTHORIZATION": PLAYHT_KEY,
+        "X-USER-ID": PLAYHT_UID
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+
+    print(response.text)
+    print(json.loads(response.text))
+
+    url = "https://api.play.ht/api/v1/articleStatus?transcriptionId=" + json.loads(response.text)["transcriptionId"]
+
+    converted = False
+    while not converted:
+        response = requests.get(url, headers=headers)
+        print(json.loads(response.text))
+        if json.loads(response.text)["converted"]:
+            converted = True
+
+    response = requests.get(url, headers=headers)
+    mp3_url = json.loads(response.text)["audioUrl"]
+
+    response = requests.get(mp3_url)
+    audio_data = io.BytesIO(response.content)
+
+    # Load the audio file using pydub
+    audio = AudioSegment.from_file(audio_data, format="mp3")
+
+    # Play the audio file
+    print("Time elapsed for generating:", datetime.datetime.now() - start_time)
+    return audio
 
 
 if __name__ == "__main__":
