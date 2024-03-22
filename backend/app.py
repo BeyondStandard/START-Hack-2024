@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain_community.vectorstores import Chroma
 from langchain.prompts.prompt import PromptTemplate
@@ -177,15 +179,25 @@ async def websocket_endpoint(websocket: WebSocket):
 async def main(message: datamodel.ChatMessage):
     openai.api_key = os.environ["OPENAI_API_KEY"]
     message.content = (
-        f"Classify the sentiment into positive, negative or neutral and identify the most fitting emotion. Return the result in a JSON format with 'emotion' and 'sentiment' as keys:\n{message.content}."
+        f"Classify the sentiment into positive, negative or neutral "
+        f"and identify the most fitting emotion. Return the result in a "
+        f"JSON format with 'emotion' and 'sentiment' as keys:\n{message.content}."
     )
     response = openai.chat.completions.create(
         model=os.environ["OPENAI_MODEL_NAME"],
         messages=[message.model_dump()],
     )
 
-    prediction = [response.choices[0].message.content.lower()]
-    logger.info(f"sentiment prediction: {prediction}", file=sys.stderr)
+    prediction = json.loads(response.choices[0].message.content.lower())
+    prediction["timestamp"] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    json_path = os.path.join("streamlit_app", "ratings.json")
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+        data.append(prediction)
+    with open(json_path, 'w') as f:
+        json.dump(data, f, indent=4)
+
+    logger.info(f"[sentiment / emotion analysis] {prediction}")
     for client in websocket_clients:
         await client.send_text(prediction)
         break  # TODO: Prevent sending it twice to the frontend
