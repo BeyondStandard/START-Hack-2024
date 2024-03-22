@@ -121,7 +121,7 @@ chatter = GPTChatter()
 @app.post("/chat")
 async def chat(message: datamodel.ChatMessage):
     response = await asyncio.create_task(chatter.ask(message.content))
-    for key, value in response.items():
+    for key, value in response.result.items():
         logger.info(f"{key}: {value}")
 
     return response["result"]
@@ -129,7 +129,7 @@ async def chat(message: datamodel.ChatMessage):
 
 # Stream the response from the GPT model
 @app.post("/stream")
-async def stream(message: datamodel.ChatMessage):
+def stream(message: datamodel.ChatMessage):
     _ = asyncio.create_task(chatter.ask(message.content))
     return StreamingResponse(chatter.response(), media_type="text/plain")
 
