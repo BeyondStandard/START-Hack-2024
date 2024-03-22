@@ -12,7 +12,7 @@ from elevenlabs.client import ElevenLabs
 
 import sys
 
-client = ElevenLabs(api_key=os.environ['ELEVENLABS_API_KEY'])
+client = ElevenLabs(api_key=os.environ['ELEVENLABS_KEY'])
 PLAYHT_UID=os.getenv("PLAYHT_UID"),
 PLAYHT_KEY=os.getenv("PLAYHT_KEY")
 
