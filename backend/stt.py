@@ -8,6 +8,7 @@ import pyaudio
 import array
 import wave
 import os
+import sys
 
 
 CHUNK_SIZE = 1024
@@ -72,10 +73,12 @@ async def record(q):
 
 async def listen(q):
     global FIRST_TIME
-
+    print("JIHOUGIFUDJHSFGHIJÖHULGKZJFHDGHJK")
+    print(FIRST_TIME)
     if FIRST_TIME:
         FIRST_TIME = False
-        play_mp3(f'audio/start_{LANG}.mp3')
+        play_mp3(f'audio/hello_{LANG}.mp3')
+    print(FIRST_TIME)
 
     stream = pyaudio.PyAudio().open(
         format=pyaudio.paInt16,
@@ -100,4 +103,4 @@ async def listen(q):
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+        asyncio.run(main())

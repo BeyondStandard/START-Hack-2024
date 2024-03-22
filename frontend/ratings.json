@@ -468,5 +468,30 @@
         "sentiment": "neutral",
         "emotion": "none",
         "timestamp": "2024-03-22T09:35:00Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "sadness",
+        "timestamp": "2024-03-22T10:19:16Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "uncertainty",
+        "timestamp": "2024-03-22T10:21:06Z"
+    },
+    {
+        "emotion": "confusion",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T10:23:08Z"
+    },
+    {
+        "emotion": "gratitude",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T10:25:43Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T11:39:39Z"
     }
 ]
