@@ -31,6 +31,7 @@ def do_speech_to_text(file_path):
     # file_path = "test_swiss_german.mp3"
     # print(sys.argv)
     # file_path = sys.argv[1]  # "recorded.mp3"
+    print(file_path)
 
     start = datetime.now()
     audio = whisper.load_audio(file_path)

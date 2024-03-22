@@ -118,9 +118,9 @@ chatter = GPTChatter()
 
 # Return the complete response from the GPT model
 @app.post("/chat")
-async def chat(message: datamodel.ChatMessage):
+async def chat_endpoint(message: datamodel.ChatMessage):
     response = await asyncio.create_task(chatter.ask(message.content))
-    for key, value in response.result.items():
+    for key, value in response.items():
         logger.info(f"{key}: {value}")
 
     return response["result"]
@@ -128,18 +128,18 @@ async def chat(message: datamodel.ChatMessage):
 
 # Stream the response from the GPT model
 @app.post("/stream")
-def stream(message: datamodel.ChatMessage):
+def stream_endpoint(message: datamodel.ChatMessage):
     _ = asyncio.create_task(chatter.ask(message.content))
     return StreamingResponse(chatter.response(), media_type="text/plain")
 
 
 @app.get("/stt")
-async def stt():
+async def stt_endpoint():
     asyncio.run(stt.main())
 
 
 @app.post("/sentiment-analysis")
-async def sentiment_analysis(message: datamodel.ChatMessage):
+async def sentiment_analysis_endpoint(message: datamodel.ChatMessage):
     openai.api_key = os.environ["OPENAI_API_KEY"]
     message.content = (
         f"Classify the sentiment into positive, negative or neutral "

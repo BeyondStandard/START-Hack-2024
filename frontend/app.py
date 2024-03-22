@@ -8,24 +8,32 @@ from audio_recorder_streamlit import audio_recorder
 from datetime import datetime
 
 
-"""
-# Create a wrapper for the custom component
-audio_recorder = components.declare_component("audio_recorder", path="my_audio_recorder/frontend")
-
-# Call the component, passing the key as an argument to the returned function
-audio_data = audio_recorder(key="recorder")
-
-if audio_data is not None:
-    streamlit.audio(audio_data)
-
-
 if 'current_page' not in streamlit.session_state:
     streamlit.session_state.current_page = 'page_1'
-"""
 
-if 'current_page' not in st.session_state:
-    st.session_state.current_page = 'page_1'
+# Customize recording and styling parameters as needed
+audio_bytes = audio_recorder(
+    pause_threshold=2.0,  # Adjusts the automatic stop sensitivity
+    sample_rate=41_000,  # Sample rate of the recorded audio
+    text="Record",  # Text displayed on the button
+    recording_color="#e8b62c",  # Button color when recording
+    neutral_color="#6aa36f",  # Button color when not recording
+    icon_name="microphone",  # Icon displayed on the button
+    icon_size="2x"  # Icon size
+)
 
+if audio_bytes:
+    # Generate a filename based on the current timestamp
+    current_time = datetime.utcnow().strftime("%Y_%m_%dT%H_%M_%SZ")
+    filename = f"{current_time}.wav"
+
+    # Save the audio bytes to a file
+    with open(filename, 'wb') as f:
+        f.write(audio_bytes)
+
+    # You can now process this file with your backend logic
+    # For example, call your existing Python script and pass the filename
+    os.system(f"python backend/tts.py {str(current_time)}.wav")
 
 def navigate_to_page(page_name):
     streamlit.session_state.current_page = page_name
@@ -119,46 +127,12 @@ if streamlit.session_state.current_page == 'page_1':
     with streamlit.spinner("Listening..."):
         if streamlit.button("Call", key="btn"):
             navigate_to_page("page_2")
-            requests.get("http://localhost:8000/stt")
-            os.system("python STT/record_voice.py")
-            """
-            # Customize recording and styling parameters as needed
-            audio_bytes = audio_recorder(
-                pause_threshold=2.0,  # Adjusts the automatic stop sensitivity
-                sample_rate=41_000,  # Sample rate of the recorded audio
-                text="Record",  # Text displayed on the button
-                recording_color="#e8b62c",  # Button color when recording
-                neutral_color="#6aa36f",  # Button color when not recording
-                icon_name="microphone",  # Icon displayed on the button
-                icon_size="0x"  # Icon size
-            )
-
-            if audio_bytes:
-                # Generate a filename based on the current timestamp
-                current_time = datetime.utcnow().strftime("%Y_%m_%dT%H_%M_%SZ")
-                filename = f"{current_time}.wav"
-
-                # Save the audio bytes to a file
-                with open(filename, 'wb') as f:
-                    f.write(audio_bytes)
-
-                # You can now process this file with your backend logic
-                # For example, call your existing Python script and pass the filename
-                os.system(f"python STT/speech_to_text.py {filename}.mp3")
-
-                # Optionally, play back the recorded audio in the frontend
-                st.audio(audio_bytes, format="audio/wav")
-            """
-
-
-
-
 
 
 
 
         with streamlit.sidebar:
-            ratings_path = os.path.join('ratings.json')
+            ratings_path = os.path.join('frontend', 'ratings.json')
             df = pandas.read_json(ratings_path)
             df["sentiment"] = df["sentiment"].astype("category")
             df["emotion"] = df["emotion"].astype("category")
