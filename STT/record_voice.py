@@ -20,7 +20,8 @@ wf.setnchannels(1)
 wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
 wf.setframerate(44100)
 
-FIRST_TIME = True
+# Set environment variable for first time
+os.environ['FIRST_TIME'] = 'True'
 
 # Create a progress bar widget
 bar = progressbar.ProgressBar(
@@ -66,16 +67,14 @@ async def record(q):
 
 
 async def listen(q):
-    global FIRST_TIME
-
-    if FIRST_TIME:
+    if os.environ['FIRST_TIME'] == 'True':
         if os.environ['swissVoice'] == 'false':
             await play_mp3('audio/hello_german.mp3')
-            FIRST_TIME = False
+            os.environ['FIRST_TIME'] = 'False'
 
         else:
             await play_mp3('audio/hello_swiss.mp3')
-            FIRST_TIME = False
+            os.environ['FIRST_TIME'] = 'False'
 
     stream = pyaudio.PyAudio().open(
         format=pyaudio.paInt16,
