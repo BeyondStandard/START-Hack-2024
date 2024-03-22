@@ -38,10 +38,12 @@ async def record(q):
         else:
             print("-")
             pause_timer = pause_timer + 1
-            if pause_timer == 50:
+            if pause_timer == 100:
                 print("break now")
                 wf.close()
                 print("Finished Recording")
+                os.system('python backend/speech_to_text.py ' + str(current_time) + '.mp3')
+                stop_event.set()
                 #os.system('python backend/speech_to_text.py '+str(current_time)+'.mp3')
                 #stop_event.set()
 
