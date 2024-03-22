@@ -233,5 +233,90 @@
         "sentiment": "neutral",
         "emotion": "none",
         "timestamp": "2024-03-22T06:08:58Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "none",
+        "timestamp": "2024-03-22T07:01:09Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "confusion",
+        "timestamp": "2024-03-22T07:01:21Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "none",
+        "timestamp": "2024-03-22T07:01:35Z"
+    },
+    {
+        "emotion": "neutral",
+        "sentiment": "n/a",
+        "timestamp": "2024-03-22T07:01:46Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "calm",
+        "timestamp": "2024-03-22T07:02:00Z"
+    },
+    {
+        "emotion": "happy",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T07:02:50Z"
+    },
+    {
+        "sentiment": "positive",
+        "emotion": "gratitude",
+        "timestamp": "2024-03-22T07:02:59Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "shock",
+        "timestamp": "2024-03-22T07:03:09Z"
+    },
+    {
+        "sentiment": "negative",
+        "emotion": "disappointment",
+        "timestamp": "2024-03-22T07:04:16Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "neutral",
+        "timestamp": "2024-03-22T07:04:44Z"
+    },
+    {
+        "emotion": "help",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T07:04:55Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "indifferent",
+        "timestamp": "2024-03-22T07:05:19Z"
+    },
+    {
+        "emotion": "indifference",
+        "sentiment": "neutral",
+        "timestamp": "2024-03-22T07:08:33Z"
+    },
+    {
+        "sentiment": "neutral",
+        "emotion": "confusion",
+        "timestamp": "2024-03-22T07:08:44Z"
+    },
+    {
+        "emotion": "frustration",
+        "sentiment": "negative",
+        "timestamp": "2024-03-22T07:09:01Z"
+    },
+    {
+        "emotion": "gratitude",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T07:09:08Z"
+    },
+    {
+        "emotion": "joy",
+        "sentiment": "positive",
+        "timestamp": "2024-03-22T07:09:21Z"
     }
 ]
