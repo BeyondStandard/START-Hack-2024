@@ -7,6 +7,7 @@ import whisper
 from elevenlabs import play
 from elevenlabs.client import ElevenLabs
 
+import sys
 
 def do_sentiment_analysis(text):
     subprocess.Popen(["python", os.path.join("backend","sentiment-analysis-request.py"), text])
@@ -14,7 +15,7 @@ def do_sentiment_analysis(text):
 def do_speech_to_text():
     # To add twilio/phone app thingy
     # file_path = "test_swiss_german.mp3"
-    file_path = "recorded.mp3"
+    file_path = sys.argv[1] #"recorded.mp3"
 
     start = datetime.now()
 

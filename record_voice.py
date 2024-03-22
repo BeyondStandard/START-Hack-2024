@@ -2,7 +2,7 @@ import asyncio
 import os
 import wave
 from array import array
-
+from datetime import datetime
 import pyaudio
 
 CHUNK_SIZE = 1024
@@ -10,7 +10,8 @@ MIN_VOLUME = 2600
 BUF_MAX_SIZE = CHUNK_SIZE * 10
 q = asyncio.Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK_SIZE)))
 stop_event = asyncio.Event()
-wf = wave.open("recorded.mp3", "wb")
+audio_filename = str(datetime.now())
+wf = wave.open(audio_filename, "wb")
 wf.setnchannels(2)
 wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
 wf.setframerate(44100)
@@ -35,7 +36,7 @@ async def record(q):
             if pause_timer == 100:
                 print("break now")
                 wf.close()
-                os.system('python backend/speech_to_text.py')
+                os.system('python backend/speech_to_text.py '+audio_filename)
                 stop_event.set()
 
 
