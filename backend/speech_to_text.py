@@ -14,11 +14,11 @@ def do_sentiment_analysis(text):
     subprocess.Popen(["python", os.path.join("backend", "sentiment-analysis-request.py"), text])
 
 
-def do_speech_to_text():
+def do_speech_to_text(file_path):
     # To add twilio/phone app thingy
     # file_path = "test_swiss_german.mp3"
     # print(sys.argv)
-    file_path = sys.argv[1]  # "recorded.mp3"
+    # file_path = sys.argv[1]  # "recorded.mp3"
 
     start = datetime.now()
 
@@ -92,9 +92,14 @@ def do_speech_to_text():
             print("Playing audio")
             play(audio)
             print("Audio played")
+            os.system('python record_voice.py')
 
     # print("Time elapsed for generating:", end - start)
     # print("Text to speech: "+str(text_to_speech))
 
 
-do_speech_to_text()
+if __name__ == "__main__":
+    if len(sys.argv) > 0:
+        path = sys.argv[1]
+        sys.argv = [sys.argv[0]]
+        do_speech_to_text(path)
