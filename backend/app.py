@@ -60,20 +60,16 @@ class TokenCallbackHandler(BaseCallbackHandler):
         self.tokens = []
 
     def on_llm_new_token(self, token: str, **kwargs) -> None:
-
-        # Check if the token has sentence ending punctuation
-        if not any(p in token for p in ['.', '!', '?']):
-            self.tokens.append(token)
-            return
-
         self.tokens.append(token)
-        sentence = "".join(self.tokens)
-        self.tokens = []
-        logger.info(f"SENTENCE: {sentence}")
+
+    def request_token(self):
+        if self.tokens:
+            return self.tokens.pop(0)
 
 
 class GPTChatter:
     def __init__(self):
+        self.complete = None
         self.callback = TokenCallbackHandler()
 
         prompt = PromptTemplate(
@@ -96,16 +92,36 @@ class GPTChatter:
             chain_type_kwargs={'prompt': prompt},
         )
 
-    async def ask(self, message: str) -> dict[str, typing.Any]:
+    def _ask(self, message: str) -> dict[str, typing.Any]:
         return self.qa_chain.invoke({'query': message})
+
+    async def ask(self, message: str) -> dict[str, typing.Any]:
+        self.complete = False
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(
+            None, self._ask, message)
+
+        self.complete = True
+        return result
+
+    async def get_response(self):
+        while not self.complete:
+            if token := self.callback.request_token():
+                yield token
+
+            else:
+                await asyncio.sleep(0.1)
 
 
 chatter = GPTChatter()
 
+
 @app.post('/chat')
 async def main(message: datamodel.ChatMessage):
-    response = await chatter.ask(message.content)
-    return response
+    _ = asyncio.create_task(chatter.ask(message.content))
+    resposne_stream = asyncio.create_task(chatter.get_response())
+
+    return StreamingResponse(resposne_stream, media_type='text/plain')
 
 
 """
@@ -169,7 +185,7 @@ async def main(message: datamodel.ChatMessage):
     )
 
     prediction = [response.choices[0].message.content.lower()]
-    print(f"sentiment prediction: {prediction}", file=sys.stderr)
+    logger.info(f"sentiment prediction: {prediction}", file=sys.stderr)
     for client in websocket_clients:
         await client.send_text(prediction)
         break  # TODO: Prevent sending it twice to the frontend
