@@ -1,4 +1,3 @@
-import time
 import pandas as pd
 import streamlit as st
 import os
@@ -100,8 +99,6 @@ if st.session_state.current_page == 'page_1':
         if st.button('Call', key='btn'):
             navigate_to_page('page_2')
             os.system('python STT/record_voice.py')
-
-
 
         with st.sidebar:
             ratings_path = os.path.join("frontend", 'ratings.json')
@@ -205,4 +202,10 @@ elif st.session_state.current_page == 'page_2':
         if st.button('End Call', key='btn'):
             navigate_to_page('page_1')
 
-
+    with st.sidebar:
+        ratings_path = os.path.join("frontend", 'ratings.json')
+        df = pd.read_json(ratings_path)
+        df["sentiment"] = df["sentiment"].astype("category")
+        df["emotion"] = df["emotion"].astype("category")
+        df = df.rename(columns={"timestamp": "Timestamp", "emotion": "Emotion", "sentiment": "Sentiment"})
+        st.bar_chart(df, x="Timestamp", y="Emotion", color="Sentiment")
