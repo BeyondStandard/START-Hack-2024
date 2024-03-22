@@ -61,6 +61,7 @@ async def record(q):
                 wf.close()
                 print("Finished Recording")
                 os.system('python STT/speech_to_text.py ' + str(current_time) + '.mp3')
+                await task
                 stop_event.set()
 
 
