@@ -154,7 +154,7 @@ async def main(message: datamodel.ChatMessage):
         f"JSON format with 'emotion' and 'sentiment' as keys:\n{message.content}."
     )
     response = openai.chat.completions.create(
-        model=os.environ["OPENAI_MODEL_NAME"],
+        model=os.environ["gptModel"],
         messages=[message.model_dump()],
     )
 
