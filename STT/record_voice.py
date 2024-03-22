@@ -1,16 +1,16 @@
+import datetime
 import asyncio
-import os
-import wave
-from array import array
-from datetime import datetime
 import pyaudio
+import array
+import wave
+import os
 
 CHUNK_SIZE = 1024
 MIN_VOLUME = 2600
 BUF_MAX_SIZE = CHUNK_SIZE * 10
 q = asyncio.Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK_SIZE)))
 stop_event = asyncio.Event()
-current_time = datetime.utcnow().strftime('%Y_%m_%dT%H_%M_%SZ')
+current_time = datetime.datetime.utcnow().strftime('%Y_%m_%dT%H_%M_%SZ')
 wf = wave.open(current_time+'.mp3', "wb")
 wf.setnchannels(2)
 wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
@@ -37,7 +37,7 @@ async def record(q):
                 print("break now")
                 wf.close()
                 print("Finished Recording")
-                os.system('python speech_to_text.py ' + str(current_time) + '.mp3')
+                os.system('python STT/speech_to_text.py ' + str(current_time) + '.mp3')
                 stop_event.set()
 
 
@@ -52,7 +52,7 @@ async def listen(q):
 
     while not stop_event.is_set():
         try:
-            data = array('h', stream.read(CHUNK_SIZE))
+            data = array.array('h', stream.read(CHUNK_SIZE))
             await q.put(data)
             # Write chunk to wave file
             try:
