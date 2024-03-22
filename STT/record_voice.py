@@ -31,7 +31,7 @@ bar = progressbar.ProgressBar(
     ])
 
 
-def play_mp3(file_path):
+async def play_mp3(file_path):
     audio = AudioSegment.from_mp3(file_path)
     play(audio)
 
@@ -51,6 +51,12 @@ async def record(q):
         if vol < MIN_VOLUME:
             pause_timer = pause_timer + 1
             if pause_timer == 100:
+                if os.environ['swissVoice'] == 'false':
+                    task = asyncio.create_task(play_mp3('audio/wait_german.mp3'))
+
+                else:
+                    task = asyncio.create_task(play_mp3('audio/wait_swiss.mp3'))
+
                 print("break now")
                 wf.close()
                 print("Finished Recording")
@@ -63,11 +69,11 @@ async def listen(q):
 
     if FIRST_TIME:
         if os.environ['swissVoice'] == 'false':
-            play_mp3('audio/hello_german.mp3')
+            await play_mp3('audio/hello_german.mp3')
             FIRST_TIME = False
 
         else:
-            play_mp3('audio/hello_swiss.mp3')
+            await play_mp3('audio/hello_swiss.mp3')
             FIRST_TIME = False
 
     stream = pyaudio.PyAudio().open(
