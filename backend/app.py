@@ -18,8 +18,7 @@ import json
 import uuid
 import os
 
-from backend import prompt_constants, datamodel
-from STT import record_voice
+from backend import prompt_constants, datamodel, stt
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -136,7 +135,7 @@ def stream(message: datamodel.ChatMessage):
 
 @app.get("/stt")
 async def stt():
-    asyncio.run(record_voice.main())
+    asyncio.run(stt.main())
 
 
 @app.post("/sentiment-analysis")
