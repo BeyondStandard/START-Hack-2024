@@ -1,3 +1,9 @@
+from pyht.client import TTSOptions, Format
+from pyht import Client
+
+from pydub.playback import play
+from pydub import AudioSegment
+
 import subprocess
 import websockets
 import datetime
@@ -11,11 +17,7 @@ import openai
 import shutil
 import json
 import os
-from pyht import Client
-from pyht.client import TTSOptions, Format
-from pydub import AudioSegment
-from pydub.playback import play
-from io import BytesIO
+import io
 
 import voices
 
@@ -265,7 +267,7 @@ async def tts_swiss(text):
     mp3_url = json.loads(response.text)["audioUrl"]
 
     response = requests.get(mp3_url)
-    audio_data = BytesIO(response.content)
+    audio_data = io.BytesIO(response.content)
 
     # Load the audio file using pydub
     audio = AudioSegment.from_file(audio_data, format="mp3")

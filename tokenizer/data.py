@@ -2,12 +2,17 @@ from langchain_community.document_loaders import BSHTMLLoader
 from langchain_core.documents import Document
 
 import functools
+import requests
 import pandas
 import pickle
 import typing
 import tqdm
 import bs4
 import os
+
+# URLs
+URL_1 = 'https://www.sg.ch/'
+URL_2 = 'http://portal.sg.oca.ch'
 
 
 # excel column headers
@@ -26,6 +31,15 @@ REPL: typing.Final[dict[str, str]] = {
     '&Uuml;': 'Ü',
     '&szlig;': 'ß',
 }
+
+
+def string_clean(string: str):
+    string = functools.reduce(
+        lambda s, kv: s.replace(*kv), REPL.items(), string
+    )
+
+    binary = string.encode('latin1', errors='replace')
+    return binary.decode('utf-8', errors='replace')
 
 
 def set_nested_value(dict_obj, keys, value):
@@ -93,10 +107,27 @@ class Data:
         self.data = {}
 
     @staticmethod
+    def _download_pdf(url):
+        url = url if url.startswith(URL_1) else URL_1 + url
+        filename = url.split('/')[-1]
+        directory = 'data/pdf/'
+
+        pdf_filepath = directory + filename
+        if os.path.exists(pdf_filepath):
+            return
+
+        response = requests.get(url)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        with open(pdf_filepath, 'wb') as output_file:
+            output_file.write(response.content)
+
+    @staticmethod
     def _soup_to_vitals(soup) -> tuple[str, bs4.BeautifulSoup]:
         if soup.title is not None:
             title = soup.title.string
-            title = title.split(' | ')[0]
+            title = string_clean(title.split(' | ')[0])
 
         else:
             title = ''
@@ -137,13 +168,14 @@ class Data:
             if tag.string is None or tag.name == 'li':
                 continue
 
-            tag.string = functools.reduce(
-                lambda s, kv: s.replace(*kv), REPL.items(), tag.string
-            )
+            if tag.name == 'a':
+                href = tag.get('href')
+                if href is not None and href.endswith('.pdf'):
+                    Data._download_pdf(href)
 
-        binary = soup.encode('latin1', errors='replace')
-        text = binary.decode('utf-8', errors='replace')
-        return title, bs4.BeautifulSoup(text, 'html.parser')
+
+        cleaned_string = string_clean(str(soup))
+        return title, bs4.BeautifulSoup(cleaned_string, 'html.parser')
 
     def load_from_raw(self):
         rows = self.raw_data[self.data_key].iterrows()
@@ -151,13 +183,9 @@ class Data:
 
             # You fucked up St. Gallen
             if i == 3551:
-                # noinspection HttpUrlsUsage
-                url_1 = 'http://portal.sg.oca.ch'
-                url_2 = 'https://www.sg.ch/'
-
-                row[SOURCE_HEADER] = row[SOURCE_HEADER].replace(url_1, '')
-                row[PATH_HEADER] = row[PATH_HEADER].replace(url_1, '')
-                row[PATH_HEADER] = row[PATH_HEADER].replace(url_2, '')
+                row[SOURCE_HEADER] = row[SOURCE_HEADER].replace(URL_2, '')
+                row[PATH_HEADER] = row[PATH_HEADER].replace(URL_2, '')
+                row[PATH_HEADER] = row[PATH_HEADER].replace(URL_1, '')
 
             filepath = f'{row[PATH_HEADER]}/data'
             with open(f'data/{filepath}.html', 'r') as html_file:
