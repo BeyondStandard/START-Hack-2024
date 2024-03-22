@@ -11,15 +11,16 @@ import streamlit.components.v1 as components
 from audio_recorder_streamlit import audio_recorder
 from datetime import datetime
 
-# Audio globals
-LANG = 'swiss' if os.environ['swissVoice'] == 'true' else 'german'
-FIRST_TIME = True
-
-
 def play_mp3(file_path):
     audio = AudioSegment.from_mp3(file_path)
     play(audio)
 
+# Audio globals
+LANG = 'swiss' if os.environ['swissVoice'] == 'true' else 'german'
+FIRST_TIME = True
+if FIRST_TIME:
+    FIRST_TIME = False
+    play_mp3(f'audio/hello_{LANG}.mp3')
 
 
 if 'current_page' not in streamlit.session_state:
@@ -37,9 +38,6 @@ audio_bytes = audio_recorder(
 )
 
 if audio_bytes:
-    if FIRST_TIME:
-        FIRST_TIME = False
-        play_mp3(f'audio/hello_{LANG}.mp3')
     # Generate a filename based on the current timestamp
     current_time = datetime.utcnow().strftime("%Y_%m_%dT%H_%M_%SZ")
     filename = f"{current_time}.wav"
