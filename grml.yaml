@@ -3,6 +3,7 @@ project: start
 
 options:
     skipBinaries: true
+    LANGCHAIN_TRACING_V2: true
 
     gptModel:
         - gpt-3.5-turbo-0125

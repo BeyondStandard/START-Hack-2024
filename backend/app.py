@@ -1,15 +1,14 @@
-from datetime import datetime
-
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.chains.retrieval_qa.base import RetrievalQA
 from langchain_community.vectorstores import Chroma
+from langchain_core.callbacks.base import BaseCallbackHandler
 from langchain.prompts.prompt import PromptTemplate
 from langchain_openai import OpenAI, OpenAIEmbeddings
-from langchain.chains.retrieval_qa.base import RetrievalQA
-from langchain_core.callbacks.base import BaseCallbackHandler
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import StreamingResponse
 
+from datetime import datetime
+import langsmith
 import asyncio
 import logging
 import base64
@@ -17,19 +16,18 @@ import dotenv
 import openai
 import typing
 import json
-import time
-import sys
+import uuid
 import os
-
-from pydantic import BaseModel
-import traceback
 
 # noinspection PyPackages
 from . import prompt_constants, datamodel
-from .datamodel import ChatMessage
 
 # Load environment variables
 dotenv.load_dotenv()
+
+# Langchain environment variables
+os.environ["LANGCHAIN_PROJECT"] = f"Tracing - {uuid.uuid4().hex[:8]}"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 
 # Logger constants
 LOGGER_DATE_FORMAT: typing.Final[str] = '%H:%M:%S'
@@ -48,12 +46,10 @@ file_handler.setLevel(FILE_LOGGER_LEVEL)
 logger = logging.getLogger('uvicorn')
 logger.addHandler(file_handler)
 
-# Set up FastAPI
+# Set up everything
 app = FastAPI()
+client = langsmith.Client()
 websocket_clients = set()
-
-#aclient = AsyncOpenAI(api_key=os.environ['OPENAI_API_KEY'])
-VOICE_ID = "iP95p4xoKVk53GoZ742B"
 
 
 class TokenCallbackHandler(BaseCallbackHandler):
@@ -79,18 +75,19 @@ class GPTChatter:
             input_variables=['context', 'question'],
         )
         vectordb = Chroma(
+            persist_directory='data/vectordb',
             embedding_function=OpenAIEmbeddings(
                 model=os.environ['embeddingModel']),
-            persist_directory='data/vectordb',
         )
-        self.qa_chain: RetrievalQA = RetrievalQA.from_chain_type(
+        r = vectordb.as_retriever(search_kwargs={'k': 10})
+        self.qa_chain = RetrievalQA.from_chain_type(
             llm=OpenAI(
                 streaming=True,
                 callbacks=[self.callback],
                 temperature=0,
                 openai_api_key=os.environ['OPENAI_API_KEY'],
             ),
-            retriever=vectordb.as_retriever(search_kwargs={'k': 10}),
+            retriever=r,
             chain_type_kwargs={'prompt': prompt},
         )
 
@@ -122,49 +119,21 @@ class GPTChatter:
 chatter = GPTChatter()
 
 
+
 @app.post('/chat')
-async def main(message: datamodel.ChatMessage):
+async def stream(message: datamodel.ChatMessage):
+    a = asyncio.create_task(chatter.ask(message.content))
+    await a
+
+    # get result of a
+    print(a.result())
+
+    # return StreamingResponse(chatter.response(), media_type='text/plain')
+
+@app.post('/stream')
+async def stream(message: datamodel.ChatMessage):
     _ = asyncio.create_task(chatter.ask(message.content))
     return StreamingResponse(chatter.response(), media_type='text/plain')
-
-
-"""
-async def chat_completion(query):
-    response = await aclient.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
-        messages=[{"role": "user", "content": query}],
-        temperature=1,
-        stream=True,
-    )
-
-    text_responses = []
-
-    async for chunk in response:
-        delta = chunk.choices[0].delta
-        text_responses.append(delta.content)
-
-    return text_responses
-
-
-@app.post("/basicchat/")
-async def chat_endpoint(chat_query: ChatQuery):
-    try:
-        responses = await chat_completion(chat_query.query)
-        return {"responses": responses}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-"""
-
-
-@app.post("/test-stream")
-def test_stream(message: datamodel.ChatMessage):
-    def generate_numbers():
-        for i in range(1, 11):
-            yield f"{i}\n"
-            time.sleep(1)  # Simulate delay
-
-    return StreamingResponse(generate_numbers(), media_type="text/plain")
-
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
