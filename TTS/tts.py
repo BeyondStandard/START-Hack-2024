@@ -1,6 +1,7 @@
 import subprocess
 import websockets
 import datetime
+import requests
 import aiohttp
 import asyncio
 import whisper
@@ -10,6 +11,11 @@ import openai
 import shutil
 import json
 import os
+from pyht import Client
+from pyht.client import TTSOptions, Format
+from pydub import AudioSegment
+from pydub.playback import play
+from io import BytesIO
 
 import voices
 
@@ -19,11 +25,41 @@ dotenv.load_dotenv()
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 ELEVENLABS_API_KEY = os.environ["ELEVENLABS_KEY"]
 VOICE_ID = voices.VOICE_IDS[os.environ["voice"]]
+PLAYHT_KEY = os.getenv("PLAYHT_KEY")
+PLAYHT_UID = os.getenv("PLAYHT_UID")
 
 text_to_speech_start_time = None
 gpt_start_time = None
 # Set OpenAI API key
 aclient = openai.AsyncOpenAI(api_key=OPENAI_API_KEY)
+
+
+# Configure your stream options
+
+client = Client(
+    user_id=os.getenv("PLAYHT_UID"),
+    api_key=os.getenv("PLAYHT_KEY")
+
+    # for on-prem users, uncomment and add the advanced grpc_addr option below. Replace grpc_addr with your endpoint.
+    # advanced=client.Client.AdvancedOptions(grpc_addr="{your-endpoint}.on-prem.play.ht:11045")
+)
+
+
+options = TTSOptions(
+    voice="s3://voice-cloning-zero-shot/d9ff78ba-d016-47f6-b0ef-dd630f59414e/female-cs/manifest.json",
+    sample_rate=44_100,
+    format=Format.FORMAT_MP3,
+    speed=1,
+)
+
+# Path to the named pipe
+pipe_path = '/tmp/audio_pipe'
+
+# Check if the named pipe exists, and create it if it doesn't
+if not os.path.exists(pipe_path):
+    os.mkfifo(pipe_path)
+
+subprocess.Popen(['mpv', '/tmp/audio_pipe'])
 
 
 def do_sentiment_analysis(text):
@@ -54,7 +90,9 @@ async def main():
     gpt_start_time = datetime.datetime.now()
 
     # Asynchronous chat completion and text-to-speech conversion
-    await chat_completion("Warum war John F Kennedy Schwarz?")
+    #asyncio.run(chat_completion("Wieviel Porto kostet der Versand eines schweizer Kinderreisepasses im Kanton St. Gallen?"))
+
+    await chat_completion("Wieviel Porto kostet der Versand eines schweizer Kinderreisepasses im Kanton St. Gallen?")
 
 
 def is_installed(lib_name):
@@ -159,15 +197,82 @@ async def text_to_speech_input_streaming(voice_id, text_iterator):
 
 
 async def chat_completion(query):
-    """Retrieve text from the server and pass it to the text-to-speech function."""
-    url = 'http://localhost:8000/chat/'  # Replace with your actual server URL if different
+    i = 0
+    complete_text = ''
+    url = 'http://localhost:8000/chat/'  # Adjust as needed
+    async with aiohttp.ClientSession() as session:
+        # Make a POST request and await the response
+        async with session.post(url, json={'content': query}) as response:
+            # Stream the response
+            async for data_chunk in response.content.iter_chunked(1024):
+                i += 1
+                text_chunk = data_chunk.decode('utf-8')
+                complete_text += text_chunk  # Accumulate each text chunk
+                # Process each chunk as it's received
+                # await process_text_chunk(data_chunk.decode('utf-8'), i)
+    await tts_swiss(complete_text)
 
-    # Mark the start time before sending the request
-    request_start_time = datetime.datetime.now()
 
-    # normal post request to the url:
-    import requests
-    response = requests.post(url, json={'content': query})
+
+async def process_text_chunk(text_chunk, index):
+    # Process each text chunk with Play.ht TTS. This function is called for each chunk of text received.
+    # You might need to adjust this based on how you want to buffer or split the text for TTS.
+    print(f"Chunk {index} size: {len(text_chunk)} bytes")
+
+
+    # Run the TTS process in an executor to avoid blocking the async loop
+    loop = asyncio.get_running_loop()
+    audio_chunks = await loop.run_in_executor(None, lambda: list(
+        client.tts(text=text_chunk, voice_engine="PlayHT2.0-turbo", options=options)))
+
+    with open('/tmp/audio_pipe', 'wb') as pipe:
+        for audio_chunk in audio_chunks:
+            pipe.write(audio_chunk)
+
+
+async def tts_swiss(text):
+    start_time = datetime.datetime.now()
+    url = "https://api.play.ht/api/v1/convert"
+
+    payload = {
+        "content": [text],
+        "voice": "de-CH-LeniNeural"
+    }
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "AUTHORIZATION": PLAYHT_KEY,
+        "X-USER-ID": PLAYHT_UID
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+
+    print(response.text)
+    print(json.loads(response.text))
+
+    url = "https://api.play.ht/api/v1/articleStatus?transcriptionId=" + json.loads(response.text)["transcriptionId"]
+
+    converted = False
+    while not converted:
+        response = requests.get(url, headers=headers)
+        print(json.loads(response.text))
+        if json.loads(response.text)["converted"]:
+            converted = True
+
+    response = requests.get(url, headers=headers)
+    mp3_url = json.loads(response.text)["audioUrl"]
+
+    response = requests.get(mp3_url)
+    audio_data = BytesIO(response.content)
+
+    # Load the audio file using pydub
+    audio = AudioSegment.from_file(audio_data, format="mp3")
+
+    # Play the audio file
+    print("Time elapsed for generating:", datetime.datetime.now() - start_time)
+    play(audio)
+
+
 
     # async def iterate_streaming_response(response):
     #     async for item in response:
