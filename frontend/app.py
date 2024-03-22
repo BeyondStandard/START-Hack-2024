@@ -1,5 +1,5 @@
 import time
-
+import pandas as pd
 import streamlit as st
 import os
 
@@ -88,6 +88,12 @@ st.markdown("""
 
 with st.spinner('Listening...'):
     if st.button('Call', key='btn'):
-        #time.sleep(1000)
         os.system('python STT/record_voice.py')
 
+    with st.sidebar:
+        ratings_path = os.path.join("frontend", 'ratings.json')
+        df = pd.read_json(ratings_path)
+        df["sentiment"] = df["sentiment"].astype("category")
+        df["emotion"] = df["emotion"].astype("category")
+        df = df.rename(columns={"timestamp": "Timestamp", "emotion": "Emotion", "sentiment": "Sentiment"})
+        st.bar_chart(df, x="Timestamp", y="Emotion", color="Sentiment")

@@ -80,16 +80,6 @@
         "timestamp": "2024-03-21T13:56:00Z"
     },
     {
-        "sentiment": "negative",
-        "emotion": "annoyed",
-        "timestamp": "2024-03-21T12:47:00Z"
-    },
-    {
-        "sentiment": "negative",
-        "emotion": "angry",
-        "timestamp": "2024-03-21T11:38:00Z"
-    },
-    {
         "sentiment": "neutral",
         "emotion": "neutral",
         "timestamp": "2024-03-21T10:29:00Z"
