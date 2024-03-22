@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-col1_1, col2_1, col3_1 = st.columns([1.5, 5, 1])
+col1_1, col2_1, col3_1 = st.columns([1.5, 5, 2])
 
 col2_1.title('Team Beyond Standard')
 st.image(os.path.join('pics', 'hack.png'))
