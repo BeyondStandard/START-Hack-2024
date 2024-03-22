@@ -37,7 +37,7 @@ async def record(q):
                 print("break now")
                 wf.close()
                 print("Finished Recording")
-                os.system('python backend/speech_to_text.py ' + str(current_time) + '.mp3')
+                os.system('python speech_to_text.py ' + str(current_time) + '.mp3')
                 stop_event.set()
 
 
