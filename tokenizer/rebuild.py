@@ -1,6 +1,6 @@
 from langchain_community.vectorstores.chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import CharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
 
 import dotenv
 import os
