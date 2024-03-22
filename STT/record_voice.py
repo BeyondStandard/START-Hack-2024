@@ -1,3 +1,6 @@
+from pydub.playback import play
+from pydub import AudioSegment
+
 import progressbar
 import datetime
 import asyncio
@@ -6,8 +9,6 @@ import array
 import wave
 import os
 
-from pydub import AudioSegment
-from pydub.playback import play
 
 CHUNK_SIZE = 1024
 MIN_VOLUME = 2600
@@ -20,8 +21,9 @@ wf.setnchannels(1)
 wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
 wf.setframerate(44100)
 
-# Set environment variable for first time
-os.environ["FIRST_TIME"] = "True"
+# Audio globals
+LANG = 'swiss' if os.environ['swissVoice'] == 'true' else 'german'
+FIRST_TIME = True
 
 # Create a progress bar widget
 bar = progressbar.ProgressBar(
@@ -34,7 +36,7 @@ bar = progressbar.ProgressBar(
 )
 
 
-async def play_mp3(file_path):
+def play_mp3(file_path):
     audio = AudioSegment.from_mp3(file_path)
     play(audio)
 
@@ -53,30 +55,27 @@ async def record(q):
         bar.update(vol)
         if vol < MIN_VOLUME:
             pause_timer = pause_timer + 1
-            if pause_timer == 100:
-                if os.environ["swissVoice"] == "false":
-                    task = asyncio.create_task(play_mp3("audio/wait_german.mp3"))
+            if pause_timer < 100:
+                continue
 
-                else:
-                    task = asyncio.create_task(play_mp3("audio/wait_swiss.mp3"))
+            loop = asyncio.get_event_loop()
+            task = loop.run_in_executor(
+                None, play_mp3, f'audio/wait_{LANG}.mp3')
 
-                print("break now")
-                wf.close()
-                print("Finished Recording")
-                os.system("python STT/speech_to_text.py " + str(current_time) + ".mp3")
-                await task
-                stop_event.set()
+            print("break now")
+            wf.close()
+            print("Finished Recording")
+            os.system(f"python STT/speech_to_text.py {str(current_time)}.mp3")
+            await task
+            stop_event.set()
 
 
 async def listen(q):
-    if os.environ["FIRST_TIME"] == "True":
-        if os.environ["swissVoice"] == "false":
-            await play_mp3("audio/hello_german.mp3")
-            os.environ["FIRST_TIME"] = "False"
+    global FIRST_TIME
 
-        else:
-            await play_mp3("audio/hello_swiss.mp3")
-            os.environ["FIRST_TIME"] = "False"
+    if FIRST_TIME:
+        FIRST_TIME = False
+        play_mp3(f'audio/start_{LANG}.mp3')
 
     stream = pyaudio.PyAudio().open(
         format=pyaudio.paInt16,
