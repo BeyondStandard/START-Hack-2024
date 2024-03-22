@@ -7,8 +7,8 @@ from langchain_openai import OpenAI, OpenAIEmbeddings
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 
-from datetime import datetime
 import langsmith
+import datetime
 import asyncio
 import logging
 import base64
@@ -119,21 +119,20 @@ class GPTChatter:
 chatter = GPTChatter()
 
 
-
 @app.post('/chat')
 async def stream(message: datamodel.ChatMessage):
-    a = asyncio.create_task(chatter.ask(message.content))
-    await a
+    response = await asyncio.create_task(chatter.ask(message.content))
+    for key, value in response.items():
+        logger.info(f"{key}: {value}")
 
-    # get result of a
-    print(a.result())
+    return response['result']
 
-    # return StreamingResponse(chatter.response(), media_type='text/plain')
 
 @app.post('/stream')
 async def stream(message: datamodel.ChatMessage):
     _ = asyncio.create_task(chatter.ask(message.content))
     return StreamingResponse(chatter.response(), media_type='text/plain')
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -160,7 +159,7 @@ async def main(message: datamodel.ChatMessage):
     )
 
     prediction = json.loads(response.choices[0].message.content.lower())
-    prediction["timestamp"] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    prediction["timestamp"] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     json_path = os.path.join("streamlit_app", "ratings.json")
     with open(json_path, 'r') as f:
         data = json.load(f)

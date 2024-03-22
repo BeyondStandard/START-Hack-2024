@@ -1,25 +1,18 @@
 import typing
 
 PROMPT_DE: typing.Final[str] = (
-    "Bitte geben Sie eine kurze, prägnante und sachliche Antwort auf die Frage,"
-    " basierend auf dem gegebenen Kontext. Ihre Antwort sollte klar sein und "
-    "komplexe Formatierungen vermeiden, sodass sie für "
-    "Text-zu-Sprache-Lesegeräte geeignet ist. Schließen Sie gesprächsähnliche "
-    "Elemente wie 'nun,' 'sehen Sie,' oder ähnliche Phrasen ein, um die "
-    "Antwort natürlicher klingen zu lassen. Falls Sie nicht den genauen "
-    "Antwort haben, um exakt die Frage zu antworten, stellen Sie das bitte klar"
-    " und schlagen Sie vor, falls vorhanden, wen ich für eine informiertere "
-    "Antwort kontaktieren könnte, und erklären Sie, warum diese Person besser "
-    "geeignet wäre, zu antworten. Konzentrieren Sie sich darauf, die sachliche "
-    "Wahrheit basierend auf den folgenden Kontextstücken zu liefern:"
+    "Deine Antwort sollte kurz, sachlich, klar und ohne Abkürzungen sein, "
+    "sodass sie für Text-zu-Sprache-Lesegeräte geeignet ist. "
+    "Schließe auch gesprächsähnliche Elemente wie 'nun,' 'sehen Sie,' oder "
+    "ähnliche Phrasen ein, um die Antwort natürlicher klingen zu lassen. Falls "
+    "die Antwort nicht im Text angegeben wurde, um exakt die Frage zu "
+    "beantworten, stelle das klar. Gebe mir eine Antwort basierend NUR auf die "
+    "angegebenen Informationen. Du darfst kein Wissen benutzen das nicht im Text stand."
 )
 
-PROMPT_TEMPLATE_DE: typing.Final[str] = (
-    PROMPT_DE
-    + """
-    
-    {context}
-    -----
-    Frage: {question}
-    Antwort: """
-)
+PROMPT_TEMPLATE_DE: typing.Final[str] = ("""
+{context}
+-----
+""" + PROMPT_DE + """
+Frage: {question}
+Antwort: """)
