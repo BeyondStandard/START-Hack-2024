@@ -6,6 +6,9 @@ import array
 import wave
 import os
 
+from pydub import AudioSegment
+from pydub.playback import play
+
 CHUNK_SIZE = 1024
 MIN_VOLUME = 2600
 BUF_MAX_SIZE = CHUNK_SIZE * 10
@@ -17,6 +20,7 @@ wf.setnchannels(1)
 wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
 wf.setframerate(44100)
 
+FIRST_TIME = True
 
 # Create a progress bar widget
 bar = progressbar.ProgressBar(
@@ -26,6 +30,10 @@ bar = progressbar.ProgressBar(
         progressbar.Percentage()
     ])
 
+
+def play_mp3(file_path):
+    audio = AudioSegment.from_mp3(file_path)
+    play(audio)
 
 
 async def main():
@@ -51,6 +59,15 @@ async def record(q):
 
 
 async def listen(q):
+    if FIRST_TIME:
+        if not os.environ['swissVoice']:
+            play_mp3('audio/hello_german.mp3')
+            first_time = False
+
+        else:
+            play_mp3('audio/hello_swiss.mp3')
+            first_time = False
+
     stream = pyaudio.PyAudio().open(
         format=pyaudio.paInt16,
         channels=1,

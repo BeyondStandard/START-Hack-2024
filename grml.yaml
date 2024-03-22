@@ -3,6 +3,7 @@ project: start
 
 options:
     skipBinaries: true
+    swissVoice: false
     LANGCHAIN_TRACING_V2: true
 
     gptModel:
