@@ -86,12 +86,6 @@ commands:
             pip install poetry
             poetry install --no-root
             sh scripts/api.sh
-            
-            skipBinaries
-            wget -q --show-progress -P data https://djstarthackathon.blob.core.windows.net/data/data.zip
-            unzip data/data.zip -d data
-            rm data/data.zip
-            
 
         commands:
             windows:

@@ -8,11 +8,3 @@ option() {
         echo "$3"
     fi
 }
-
-
-skipBinaries() {
-    if [[ "$(option ${skipBinaries} 'true')" == "true" ]]; then
-        echo "Skipping download of the binaries"
-        exit 0
-    fi
-}
