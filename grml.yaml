@@ -89,7 +89,6 @@ commands:
             source .venv/bin/activate
             pip install poetry
             poetry install --no-root
-            sh scripts/api.sh
 
         commands:
             windows:
