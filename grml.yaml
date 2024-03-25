@@ -1,6 +1,10 @@
 version: 2
 project: start
 
+env:
+    GOOGLE_APPLICATION_CREDENTIALS: hackathons-418309-5ce2c54a3a8b.json
+    PROJECT_ID: 672205156129
+
 options:
     skipBinaries: true
     swissVoice: false
@@ -134,4 +138,5 @@ commands:
         args:
             - query
         exec: |
-            curl -X POST -H "Content-Type: application/json" -d '{"content": "'"${query}"'"}' http://localhost:8000/chat
+            output=$(curl -s -S -X POST -H "Content-Type: application/json" -d '{"content": "'"${query}"'"}' http://localhost:8000/chat)
+            echo $output

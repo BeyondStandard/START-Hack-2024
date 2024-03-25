@@ -39,6 +39,7 @@ pydub = "^0.25.1"
 streamlit = "^1.32.2"
 pyaudio = "^0.2.14"
 progressbar2 = "^4.4.2"
+google-cloud-secret-manager = "^2.19.0"
 
 [tool.poetry.group.dev.dependencies]
 types-requests = "^2.31.0.20240311"
@@ -49,7 +50,7 @@ isort = "^5.13.2"
 
 # Linting
 [tool.black]
-line-length = 88
+line-length = 79
 target-version = ['py310']
 
 [tool.isort]

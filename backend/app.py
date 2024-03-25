@@ -12,20 +12,25 @@ import datetime
 import asyncio
 import logging
 import base64
-import dotenv
 import openai
 import typing
 import json
 import uuid
 import os
 
-# noinspection PyPackages
-from . import prompt_constants, datamodel
 
-# Load environment variables
-dotenv.load_dotenv()
+from backend import prompt_constants, datamodel
+import secret_manager
+
+
+# Secret manager setup
+secret_manager = secret_manager.SecretManager()
+secret_manager.init_secret("OpenAI")
+secret_manager.init_secret("LangChain")
 
 # Langchain environment variables
+secret_manager.set_secret("OPENAI_API_KEY", "OpenAI")
+secret_manager.set_secret("LANGCHAIN_API_KEY", "LangChain")
 os.environ["LANGCHAIN_PROJECT"] = f"Tracing - {uuid.uuid4().hex[:8]}"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 
